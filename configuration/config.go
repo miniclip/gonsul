@@ -212,6 +212,9 @@ func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string
 
 	// Decode data into "generic"
 	err = json.Unmarshal([]byte(content), &secretsMap)
+	if err != nil {
+		return nil, errors.New(fmt.Sprintf("could not parse keys JSON file (%s). Error message: %s", secretsFile, err.Error()))
+	}
 
 	return secretsMap, nil
 }
