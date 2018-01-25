@@ -3,15 +3,12 @@ package importer
 import (
 	"github.com/miniclip/gonsul/configuration"
 	"github.com/miniclip/gonsul/errorutil"
-	"github.com/miniclip/gonsul/data"
 	"github.com/cbroglie/mustache"
 	"net/http"
 	"errors"
 	"io/ioutil"
 	"bytes"
 	"time"
-	"encoding/json"
-	"encoding/base64"
 	"fmt"
 )
 
@@ -19,8 +16,9 @@ var config 		configuration.Config 		// Set our Configuration as global package s
 var logger 		errorutil.Logger     		// Set our Logger as global package scope
 var localData	map[string]string       	// Our map that will hold our processed local data
 var liveData	map[string]string       	// Our map that will hold our live Consul data
-var updated		int							// A simple update counter
-var deleted		int							// A simple delete counter
+var insertCount	int							// A simple insert counter
+var updateCount	int							// A simple update counter
+var deleteCount	int							// A simple delete counter
 
 func Start(data map[string]string, conf *configuration.Config, log *errorutil.Logger) {
 
@@ -28,8 +26,7 @@ func Start(data map[string]string, conf *configuration.Config, log *errorutil.Lo
 	localData 	= data
 	config 		= *conf
 	logger 		= *log
-	updated		= 0
-	deleted		= 0
+	insertCount, updateCount, deleteCount = 0, 0, 0
 
 	// For control over HTTP client headers,
 	// redirect policy, and other settings,
@@ -42,14 +39,17 @@ func Start(data map[string]string, conf *configuration.Config, log *errorutil.Lo
 	// Populate our Consul live data, to compare before writes
 	populateLiveData(client)
 
+	// Create our Deletion checking
 	checkDeletes(client)
 
 	// Iterate over our import data
 	for k, v := range localData {
-		insert(k, v, client)
+		insertToConsul(k, v, client)
 	}
 
-	logger.PrintInfo(fmt.Sprintf("Updated %d records", updated))
+	logger.PrintInfo(fmt.Sprintf("Inserts: %d records", insertCount))
+	logger.PrintInfo(fmt.Sprintf("Updates: %d records", updateCount))
+	logger.PrintInfo(fmt.Sprintf("Deletes: %d records", deleteCount))
 }
 
 func checkDeletes(client *http.Client) {
@@ -73,62 +73,14 @@ func checkDeletes(client *http.Client) {
 		}
 		errorutil.ExitError(errors.New(""), errorutil.ErrorDeleteNotAllowed, &logger)
 	} else if len(deletes) != 0 {
-
+		// We found some deletes to do, and we're allowed to do it. Loop each one triggering the DELETE request
+		for _, keyForDeletion := range deletes {
+			deleteFromConsul(keyForDeletion, client)
+		}
 	}
 }
 
-func populateLiveData(client *http.Client) {
-	// Create our URL
-	consulUrl := config.GetConsulURL() + "/v1/kv/" + config.GetConsulbasePath() + "?recurse=true"
-	// build our request
-	req, err := http.NewRequest("GET", consulUrl, nil)
-	if err != nil {
-		errorutil.ExitError(errors.New("NewRequestGET: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
-	}
-
-	// Set ACL token
-	req.Header.Set("X-Consul-Token", config.GetConsulACL())
-
-	// Send the request via a client, Do sends an HTTP request and returns an HTTP response
-	resp, err := client.Do(req)
-	if err != nil {
-		errorutil.ExitError(errors.New("DoGET: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
-	}
-
-	// Clean response after function ends
-	defer resp.Body.Close()
-
-	// Invalid response, path is empty then, fresh import
-	if resp.StatusCode == 404 {
-		return
-	}
-
-	// Read response from HTTP Response
-	bodyBytes, err 	:= ioutil.ReadAll(resp.Body)
-	if err != nil {
-		errorutil.ExitError(errors.New("ReadGetResponse: " + err.Error()), errorutil.ErrorFailedReadingResponse, &logger)
-	}
-	// Create a structure for our response, basically an array of
-	// Consul results because we're doing a recurse call
-	var bodyStruct	[]data.ConsulResult
-	// Convert response to a string and then parse it to our struct
-	bodyString := string(bodyBytes)
-	err = json.Unmarshal([]byte(bodyString), &bodyStruct)
-	if err != nil {
-		errorutil.ExitError(errors.New("Unmarshal: " + err.Error()), errorutil.ErrorFailedJsonDecode, &logger)
-	}
-
-	// All good so far, instantiate our map
-	liveData = map[string]string{}
-
-	// Loop each entry on our Consul response
-	for _, v := range bodyStruct {
-		// Add to our map
-		liveData[v.Key] = v.Value
-	}
-}
-
-func insert(path string, value string, client *http.Client) {
+func insertToConsul(path string, value string, client *http.Client) {
 	var err error
 
 	// Create our URL
@@ -140,8 +92,10 @@ func insert(path string, value string, client *http.Client) {
 		value, err = mustache.Render(value, config.GetSecretsMap())
 	}
 
+	insertOrUpdate := shouldInsert(path, value)
+
 	// Check if we should insert the value, to save writes on Consul cluster
-	if !shouldInsert(path, value) {
+	if insertOrUpdate == IsSkipping {
 		//logger.PrintInfo("IMPORTING - " + path + " -> Skip")
 		logger.PrintDebug("CONSUL: skipping as consul and repo data are equal")
 		return
@@ -178,22 +132,54 @@ func insert(path string, value string, client *http.Client) {
 	// Cast response to string
 	bodyString 		:= string(bodyBytes)
 
-	logger.PrintInfo("IMPORTING - " + path + " -> " + bodyString)
-	updated++
-}
-
-
-func shouldInsert(path string, value string) bool {
-
-	// Set our values (the original base64 response + convert actual value to base64)
-	respValB64		:= liveData[path]
-	currValB64		:= base64.StdEncoding.EncodeToString([]byte(value))
-
-	// If values are equal return false so we do not write value
-	if respValB64 == currValB64 {
-		return false
+	if insertOrUpdate == IsUpdating {
+		logger.PrintInfo("UPDATING  - " + path + " -> " + bodyString)
+		updateCount++
+	} else {
+		logger.PrintInfo("INSERTING - " + path + " -> " + bodyString)
+		insertCount++
 	}
 
-	// Values are different, we should let caller know that value must be written to Consul
-	return true
+}
+
+func deleteFromConsul(path string, client *http.Client) {
+	var err error
+
+	// Create our URL
+	consulUrl := config.GetConsulURL() + "/v1/kv/" + path
+	logger.PrintDebug("CONSUL: Deleting URL: " + consulUrl)
+
+	// build our request
+	logger.PrintDebug("CONSUL: creating DELETE request")
+	req, err := http.NewRequest("DELETE", consulUrl, nil)
+	if err != nil {
+		errorutil.ExitError(errors.New("NewRequestDELETE: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
+	}
+
+	// Set ACL token
+	req.Header.Set("X-Consul-Token", config.GetConsulACL())
+
+	// Send the request via a client
+	// Do sends an HTTP request and
+	// returns an HTTP response
+	logger.PrintDebug("CONSUL: calling DELETE request")
+	resp, err := client.Do(req)
+	if err != nil {
+		errorutil.ExitError(errors.New("DoDELETE: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
+	}
+
+	// Clean response after function ends
+	defer resp.Body.Close()
+
+	// Read the response body
+	logger.PrintDebug("CONSUL: reading DELETE response")
+	bodyBytes, err 	:= ioutil.ReadAll(resp.Body)
+	if err != nil {
+		errorutil.ExitError(errors.New("ReadDeleteResponse: " + err.Error()), errorutil.ErrorFailedReadingResponse, &logger)
+	}
+	// Cast response to string
+	bodyString 		:= string(bodyBytes)
+
+	logger.PrintInfo("DELETING  - " + path + " -> " + bodyString)
+	deleteCount++
 }
