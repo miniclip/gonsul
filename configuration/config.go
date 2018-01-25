@@ -55,8 +55,10 @@ type Config struct {
 
 func GetConfig() (*Config, error) {
 
+	var err error
+
 	if config == nil {
-		config, err := buildConfig()
+		config, err = buildConfig()
 		return config, err
 	}
 
