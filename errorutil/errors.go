@@ -1,5 +1,6 @@
 package errorutil
 
+const ErrorDeleteNotAllowed				= 1
 const ErrorBadParams 					= 2
 const ErrorFailedConsulConnection 		= 3
 const ErrorFailedReadingResponse 		= 4
@@ -11,6 +12,8 @@ type GonsulError struct {
 }
 
 func ExitError(err error, errorCode int, logger *Logger) {
-	logger.PrintError(err.Error())
+	if err.Error() != "" {
+		logger.PrintError(err.Error())
+	}
 	panic(GonsulError{Code: errorCode})
 }

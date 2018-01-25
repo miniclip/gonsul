@@ -2,14 +2,13 @@ package exporter
 
 import (
 	"github.com/miniclip/gonsul/errorutil"
-	"github.com/miniclip/gonsul/data"
 	"encoding/json"
 	"strconv"
 	"errors"
 	"fmt"
 )
 
-func expandJSON(path string, jsonData string, importData *data.EntryCollection) {
+func expandJSON(path string, jsonData string, localData map[string]string) {
 	// Create "generic" json struct
 	var arbitraryJSON map[string]interface{}
 
@@ -26,10 +25,10 @@ func expandJSON(path string, jsonData string, importData *data.EntryCollection) 
 	}
 
 	// Iterate over our "generic" JSON structure
-	traverseJSON(path, arbitraryJSON, importData)
+	traverseJSON(path, arbitraryJSON, localData)
 }
 
-func traverseJSON(path string, arbitraryJSON map[string]interface{}, importData *data.EntryCollection) {
+func traverseJSON(path string, arbitraryJSON map[string]interface{}, localData map[string]string) {
 	for key, value := range arbitraryJSON {
 		// Append key to path
 		newPath := path + "/" + key
@@ -38,27 +37,27 @@ func traverseJSON(path string, arbitraryJSON map[string]interface{}, importData 
 		case string:
 			// We have a string value, create piece and add to collection
 			piece := createPiece(newPath, value.(string))
-			importData.AddEntry(piece)
+			localData[piece.KVPath] = piece.Value
 
 		case bool:
 			// We have a string value, create piece and add to collection
 			piece := createPiece(newPath, strconv.FormatBool(value.(bool)))
-			importData.AddEntry(piece)
+			localData[piece.KVPath] = piece.Value
 
 		case float64:
 			// We have a "Javascript number" -> always floating point. Create piece and add to collection
 			piece := createPiece(newPath, fmt.Sprint(value.(float64)))
-			importData.AddEntry(piece)
+			localData[piece.KVPath] = piece.Value
 
 		case []interface{}:
 			// We have an array - ohoh
 			// Array inside consul are... well are not! Insert as string for now
 			piece := createPiece(newPath, fmt.Sprint(value.([]interface{})))
-			importData.AddEntry(piece)
+			localData[piece.KVPath] = piece.Value
 
 		case map[string]interface{}:
 			// we have an object, recurse casting the value
-			traverseJSON(newPath, value.(map[string]interface{}), importData)
+			traverseJSON(newPath, value.(map[string]interface{}), localData)
 		}
 	}
 }

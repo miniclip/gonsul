@@ -12,17 +12,24 @@ import (
 	"time"
 	"encoding/json"
 	"encoding/base64"
+	"fmt"
 )
 
-var config 			configuration.Config		// Set our Configuration as global package scope
-var logger 			errorutil.Logger			// Set our Logger as global package scope
-var consulLiveData	map[string]string			// Create a map with Consul recursive GET, so it's easier to search
+var config 		configuration.Config 		// Set our Configuration as global package scope
+var logger 		errorutil.Logger     		// Set our Logger as global package scope
+var localData	map[string]string       	// Our map that will hold our processed local data
+var liveData	map[string]string       	// Our map that will hold our live Consul data
+var updated		int							// A simple update counter
+var deleted		int							// A simple delete counter
 
-func Start(data data.EntryCollection, conf *configuration.Config, log *errorutil.Logger) {
+func Start(data map[string]string, conf *configuration.Config, log *errorutil.Logger) {
 
 	// Set the appropriate values for our package global variables
-	config = *conf
-	logger = *log
+	localData 	= data
+	config 		= *conf
+	logger 		= *log
+	updated		= 0
+	deleted		= 0
 
 	// For control over HTTP client headers,
 	// redirect policy, and other settings,
@@ -33,15 +40,44 @@ func Start(data data.EntryCollection, conf *configuration.Config, log *errorutil
 	}
 
 	// Populate our Consul live data, to compare before writes
-	populateConsulLiveData(client)
+	populateLiveData(client)
+
+	checkDeletes(client)
 
 	// Iterate over our import data
-	for _, entry := range data.Entries {
-		insert(entry.KVPath, entry.Value, client)
+	for k, v := range localData {
+		insert(k, v, client)
+	}
+
+	logger.PrintInfo(fmt.Sprintf("Updated %d records", updated))
+}
+
+func checkDeletes(client *http.Client) {
+	var deletes []string
+
+	// Check for deletes
+	for k := range liveData {
+		if _, ok := localData[k]; !ok {
+			// Not found in local - DELETE
+			deletes = append(deletes, k)
+		}
+	}
+
+	// Did we got any deletes and are we allowed to delete them?
+	if !config.AllowDeletes() && len(deletes) != 0 {
+		// We're not supposed to trigger Consul deletes, output report and exit with error
+		logger.PrintError("We're stopping as there are deletes and Gonsul is running without delete permission")
+		logger.PrintError("Below is all the Consul KV paths that should be deleted")
+		for _, keyForDeletion := range deletes {
+			logger.PrintError("- " + keyForDeletion)
+		}
+		errorutil.ExitError(errors.New(""), errorutil.ErrorDeleteNotAllowed, &logger)
+	} else if len(deletes) != 0 {
+
 	}
 }
 
-func populateConsulLiveData(client *http.Client) {
+func populateLiveData(client *http.Client) {
 	// Create our URL
 	consulUrl := config.GetConsulURL() + "/v1/kv/" + config.GetConsulbasePath() + "?recurse=true"
 	// build our request
@@ -83,12 +119,12 @@ func populateConsulLiveData(client *http.Client) {
 	}
 
 	// All good so far, instantiate our map
-	consulLiveData = map[string]string{}
+	liveData = map[string]string{}
 
 	// Loop each entry on our Consul response
 	for _, v := range bodyStruct {
 		// Add to our map
-		consulLiveData[v.Key] = v.Value
+		liveData[v.Key] = v.Value
 	}
 }
 
@@ -143,13 +179,14 @@ func insert(path string, value string, client *http.Client) {
 	bodyString 		:= string(bodyBytes)
 
 	logger.PrintInfo("IMPORTING - " + path + " -> " + bodyString)
+	updated++
 }
 
 
 func shouldInsert(path string, value string) bool {
 
 	// Set our values (the original base64 response + convert actual value to base64)
-	respValB64		:= consulLiveData[path]
+	respValB64		:= liveData[path]
 	currValB64		:= base64.StdEncoding.EncodeToString([]byte(value))
 
 	// If values are equal return false so we do not write value

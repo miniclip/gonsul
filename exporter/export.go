@@ -3,19 +3,19 @@ package exporter
 import (
 	"github.com/miniclip/gonsul/configuration"
 	"github.com/miniclip/gonsul/errorutil"
-	"github.com/miniclip/gonsul/data"
 )
 
 var config configuration.Config
 var logger errorutil.Logger
 
-func Export(conf *configuration.Config, log *errorutil.Logger) data.EntryCollection {
+func Export(conf *configuration.Config, log *errorutil.Logger) map[string]string {
 	// Set the appropriate values for our package global variables
 	config = *conf
 	logger = *log
 
-	// Instantiate our import data structure
-	var processedData data.EntryCollection
+	// Instantiate our local data map
+	var localData = map[string]string{}
+
 	// Set the path where Gonsul should start traversing files to add to Consul
 	repoDir 	:= config.GetRepoRootDir() + "/" + config.GetRepoBasePath()
 
@@ -27,8 +27,8 @@ func Export(conf *configuration.Config, log *errorutil.Logger) data.EntryCollect
 		logger.PrintInfo("REPO: Skipping GIT clone, using local path: " + config.GetRepoRootDir())
 	}
 	// Traverse our repo directory, filling up the data.EntryCollection structure
-	processDir(repoDir, &processedData)
+	processDir(repoDir, localData)
 
 	// Return our final data.EntryCollection structure
-	return processedData
+	return localData
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/miniclip/gonsul/errorutil"
 	"github.com/miniclip/gonsul/exporter"
 	"github.com/miniclip/gonsul/importer"
-	"github.com/miniclip/gonsul/data"
 	"errors"
 )
 
@@ -51,7 +50,7 @@ func startOnce(conf *configuration.Config, log *errorutil.Logger) {
 	importData(datum, conf, log)
 }
 
-func exportData(conf *configuration.Config, log *errorutil.Logger) data.EntryCollection {
+func exportData(conf *configuration.Config, log *errorutil.Logger) map[string]string {
 	log.PrintDebug("Starting data retrieve from GIT")
 	processedData 	:= exporter.Export(conf, log)
 	log.PrintDebug("Finished data retrieve from GIT")
@@ -59,8 +58,8 @@ func exportData(conf *configuration.Config, log *errorutil.Logger) data.EntryCol
 	return processedData
 }
 
-func importData(data data.EntryCollection, conf *configuration.Config, log *errorutil.Logger) {
+func importData(localData map[string]string, conf *configuration.Config, log *errorutil.Logger) {
 	log.PrintDebug("Starting data import to Consul")
-	importer.Start(data, conf, log)
+	importer.Start(localData, conf, log)
 	log.PrintDebug("Finished data import to Consul")
 }

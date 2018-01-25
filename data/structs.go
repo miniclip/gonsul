@@ -13,11 +13,3 @@ type Entry struct {
 	KVPath 			string
 	Value    		string
 }
-
-type EntryCollection struct {
-	Entries 		[]Entry
-}
-
-func (data *EntryCollection) AddEntry(entry Entry) {
-	data.Entries = append(data.Entries, entry)
-}

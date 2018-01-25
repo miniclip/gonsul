@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 )
 
-func processDir(directory string, importData *data.EntryCollection) {
+func processDir(directory string, localData map[string]string) {
 	// Read the entire directory
 	files, _ := ioutil.ReadDir(directory)
 	// Loop each entry
@@ -16,7 +16,7 @@ func processDir(directory string, importData *data.EntryCollection) {
 		if file.IsDir() {
 			// We found a directory, recurse it
 			newDir 			:= directory + "/" + file.Name()
-			processDir(newDir, importData)
+			processDir(newDir, localData)
 		} else {
 			filePath 		:= directory + "/" + file.Name()
 			ext				:= filepath.Ext(filePath)
@@ -27,12 +27,12 @@ func processDir(directory string, importData *data.EntryCollection) {
 			if err != nil {
 				fmt.Print(err)
 			}
-			parseFile(filePath, string(content), importData)
+			parseFile(filePath, string(content), localData)
 		}
 	}
 }
 
-func parseFile(filePath string, value string, importData *data.EntryCollection) {
+func parseFile(filePath string, value string, localData map[string]string) {
 	// Extract our file extension and cleanup file path
 	ext		:= filepath.Ext(filePath)
 	path	:= cleanFilePath(filePath)
@@ -41,7 +41,7 @@ func parseFile(filePath string, value string, importData *data.EntryCollection) 
 		// Check if the file is a JSON one
 		if ext == ".json" {
 			// Great, we should iterate our JSON (And that's the value)
-			expandJSON(path, value, importData)
+			expandJSON(path, value, localData)
 
 			// we must return here, to avoid importing the file as blob
 			return
@@ -51,7 +51,7 @@ func parseFile(filePath string, value string, importData *data.EntryCollection) 
 	// Not expanding JSON files, create new single "piece" with the
 	// value given (the file content) and add to collection
 	piece := createPiece(path, value)
-	importData.AddEntry(piece)
+	localData[piece.KVPath] = piece.Value
 }
 
 func cleanFilePath(filePath string) string {
