@@ -2,6 +2,7 @@ package errorutil
 
 import (
 	"fmt"
+	"time"
 )
 
 const LogErr 		= "ERROR"
@@ -30,17 +31,20 @@ func NewLogger(level int) *Logger {
 }
 
 func (logger *Logger) PrintError(msg string) {
-	fmt.Println("[" + LogErr + "] " + msg)
+	t := time.Now()
+	fmt.Println("[" + LogErr + "] [" + t.Format(time.StampMilli) + "] " + msg)
 }
 
 func (logger *Logger) PrintInfo(msg string) {
+	t := time.Now()
 	if logger.level >= ErrorLevels[LogInfo] {
-		fmt.Println("[" + LogInfo + "]  " + msg)
+		fmt.Println("[" + LogInfo + "] [" + t.Format(time.StampMilli) + "] " + msg)
 	}
 }
 
 func (logger *Logger) PrintDebug(msg string) {
+	t := time.Now()
 	if logger.level >= ErrorLevels[LogDebug] {
-		fmt.Println("[" + LogDebug + "] " + msg)
+		fmt.Println("[" + LogDebug + "] [" + t.Format(time.StampMilli) + "] " + msg)
 	}
 }
