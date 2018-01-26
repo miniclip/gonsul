@@ -32,7 +32,7 @@ func start() {
 
 	}
 
-	logger.PrintDebug("Quitting... bye 😀")
+	logger.PrintInfo("Quitting... bye 😀")
 }
 
 func startPolling(conf *configuration.Config, log *errorutil.Logger)  {
@@ -52,21 +52,12 @@ func startOnce(conf *configuration.Config, log *errorutil.Logger) {
 		log.PrintInfo("Starting in mode: ONCE")
 	}
 	// Export our data
-	localData := exportData(conf, log)
-	// Start data import to Consul
-	importData(localData, conf, log)
-}
-
-func exportData(conf *configuration.Config, log *errorutil.Logger) map[string]string {
 	log.PrintDebug("Starting data retrieve from GIT")
 	processedData 	:= exporter.Export(conf, log)
 	log.PrintDebug("Finished data retrieve from GIT")
 
-	return processedData
-}
-
-func importData(localData map[string]string, conf *configuration.Config, log *errorutil.Logger) {
+	// Start data import to Consul
 	log.PrintDebug("Starting data import to Consul")
-	importer.Start(localData, conf, log)
+	importer.Start(processedData, conf, log)
 	log.PrintDebug("Finished data import to Consul")
 }

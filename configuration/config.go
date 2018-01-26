@@ -1,14 +1,15 @@
 package configuration
 
 import (
-	"flag"
-	"errors"
 	"github.com/miniclip/gonsul/errorutil"
+
+	"encoding/json"
+	"io/ioutil"
 	"strings"
+	"errors"
+	"flag"
 	"fmt"
 	"os"
-	"io/ioutil"
-	"encoding/json"
 )
 
 const StrategyDry 		= "DRYRUN"

@@ -1,12 +1,14 @@
 package exporter
 
 import (
-	"fmt"
-	"errors"
 	"github.com/miniclip/gonsul/errorutil"
-	"gopkg.in/src-d/go-git.v4"
+
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4"
+
+	"errors"
+	"fmt"
 )
 
 func downloadRepo(fileSystemPath string, url string) {

@@ -2,6 +2,7 @@ package exporter
 
 import (
 	"github.com/miniclip/gonsul/errorutil"
+
 	"encoding/json"
 	"strconv"
 	"errors"
