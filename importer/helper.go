@@ -7,11 +7,11 @@ import (
 	"github.com/olekukonko/tablewriter"
 	"github.com/cbroglie/mustache"
 
+	"encoding/base64"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"errors"
-	"io/ioutil"
-	"encoding/base64"
 	"os"
 	"fmt"
 )
@@ -125,7 +125,6 @@ func createLiveData(client *http.Client) map[string]string {
 func printOperations(matrix structs.OperationMatrix, printWhat string) {
 	// Add a new line before the table
 	fmt.Println()
-
 	// Let's make sure there are any operation
 	if matrix.GetTotalOps() > 0 {
 		// Instantiate our table and set table header

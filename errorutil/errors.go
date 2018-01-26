@@ -1,12 +1,14 @@
 package errorutil
 
-const ErrorDeleteNotAllowed				= 1
-const ErrorBadParams 					= 2
-const ErrorFailedConsulConnection 		= 3
-const ErrorFailedReadingResponse 		= 4
-const ErrorFailedJsonDecode 			= 5
-const ErrorFailedCloning 				= 6
-const ErrorFailedMustache 				= 7
+const ErrorDeleteNotAllowed				= 10
+const ErrorBadParams 					= 20
+const ErrorFailedConsulConnection 		= 30
+const ErrorFailedConsulTxn 				= 31
+const ErrorFailedReadingResponse 		= 40
+const ErrorFailedJsonEncode 			= 50
+const ErrorFailedJsonDecode 			= 51
+const ErrorFailedCloning 				= 60
+const ErrorFailedMustache 				= 70
 
 type GonsulError struct {
 	Code	int

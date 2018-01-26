@@ -5,12 +5,16 @@ import (
 	"github.com/miniclip/gonsul/errorutil"
 	"github.com/miniclip/gonsul/structs"
 
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"errors"
+	"bytes"
 	"time"
 	"fmt"
-	"encoding/json"
 )
+
+const ConsulTxnLimit = 64
 
 var config 		configuration.Config 		// Set our Configuration as global package scope
 var logger 		errorutil.Logger     		// Set our Logger as global package scope
@@ -18,7 +22,7 @@ var logger 		errorutil.Logger     		// Set our Logger as global package scope
 func Start(localData map[string]string, conf *configuration.Config, log *errorutil.Logger) {
 
 	// Create some local variables
-	var operations 	structs.OperationMatrix
+	var ops 		structs.OperationMatrix
 	var liveData 	map[string]string
 
 	// Set the appropriate values for our package global variables
@@ -37,26 +41,24 @@ func Start(localData map[string]string, conf *configuration.Config, log *errorut
 	liveData 	= createLiveData(client)
 
 	// Create our operations Matrix
-	operations 	= createOperationMatrix(liveData, localData)
+	ops 		= createOperationMatrix(liveData, localData)
 
 	// Check if it's a dry run
 	if conf.GetStrategy() == configuration.StrategyDry {
 		// Print matrix and exit
-		printOperations(operations, structs.OperationAll)
+		printOperations(ops, structs.OperationAll)
 
 		return
 	}
 
 	// Process our operations matrix
-	processOperations(operations)
+	processOperations(ops, client)
 
 	// Print result summary
-	logger.PrintInfo(fmt.Sprintf("Inserts: %d records", operations.GetTotalInserts()))
-	logger.PrintInfo(fmt.Sprintf("Updates: %d records", operations.GetTotalUpdates()))
-	logger.PrintInfo(fmt.Sprintf("Deletes: %d records", operations.GetTotalDeletes()))
+	logger.PrintInfo(fmt.Sprintf("Finished: %d Inserts, %d Updates %d Deletes", ops.GetTotalInserts(), ops.GetTotalUpdates(), ops.GetTotalDeletes()))
 }
 
-func processOperations(matrix structs.OperationMatrix) {
+func processOperations(matrix structs.OperationMatrix, client *http.Client) {
 	// Did we got any deletes and are we allowed to delete them?
 	if !config.AllowDeletes() && matrix.HasDeletes() {
 		// We're not supposed to trigger Consul deletes, output report and exit with error
@@ -73,52 +75,47 @@ func processOperations(matrix structs.OperationMatrix) {
 	for _, op := range matrix.GetOperations()  {
 		// We need to get the values to use pointers for our structure
 		// so we can clearly identify nil values, as in https://willnorris.com/2014/05/go-rest-apis-and-pointers
-		verb 			:= op.GetVerb()
-		path 			:= op.GetPath()
+		verb	:= op.GetVerb()
+		path 	:= op.GetPath()
 		if op.GetType() == structs.OperationDelete {
 			TxnKV 			:= structs.ConsulTxnKV{Verb: &verb, Key: &path}
 			transactions 	= append(transactions, structs.ConsulTxn{KV: TxnKV})
 		} else {
 			val 			:= op.GetValue()
 			TxnKV 			:= structs.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
-			transactions = append(transactions, structs.ConsulTxn{KV: TxnKV})
+			transactions 	= append(transactions, structs.ConsulTxn{KV: TxnKV})
+		}
+
+		if len(transactions) == ConsulTxnLimit {
+			// Flush current transactions because we hit max operation per transaction
+			// One day Consul will release an API endpoint from where we can get this limit
+			// so we do can stop hardcoding this constant
+			processConsulTransaction(transactions, client)
+			// Reset our transaction array
+			transactions = []structs.ConsulTxn{}
 		}
 	}
 
-	json, _ := json.MarshalIndent(transactions, "", "  ")
-	fmt.Println(string(json))
+	// Do we have transactions to process
+	if len(transactions) > 0 {
+		processConsulTransaction(transactions, client)
+	}
 }
 
-func processConsulTransaction(transactions []structs.ConsulTxn) {
-
-}
-
-func insertToConsul(path string, value string, client *http.Client) {
-	/*
-	var err error
+func processConsulTransaction(transactions []structs.ConsulTxn, client *http.Client) {
+	// Encode our transaction into a JSON payload
+	jsonPayload, err := json.Marshal(transactions)
+	if err != nil {
+		errorutil.ExitError(errors.New("Marshal: " + err.Error()), errorutil.ErrorFailedJsonEncode, &logger)
+	}
 
 	// Create our URL
-	consulUrl := config.GetConsulURL() + "/v1/kv/" + path
-	logger.PrintDebug("CONSUL: Importing to URL: " + consulUrl)
-
-	// Shall we run secret replacement
-	if config.DoSecrets() {
-		value, err = mustache.Render(value, config.GetSecretsMap())
-	}
-
-
-	insertOrUpdate := shouldInsert(path, value)
-
-	// Check if we should insert the value, to save writes on Consul cluster
-	if insertOrUpdate == IsSkipping {
-		//logger.PrintInfo("IMPORTING - " + path + " -> Skip")
-		logger.PrintDebug("CONSUL: skipping as consul and repo data are equal")
-		return
-	}
+	consulUrl := config.GetConsulURL() + "/v1/txn"
+	logger.PrintDebug("CONSUL: Importing a transactions")
 
 	// build our request
 	logger.PrintDebug("CONSUL: creating PUT request")
-	req, err := http.NewRequest("PUT", consulUrl, bytes.NewBufferString(value))
+	req, err := http.NewRequest("PUT", consulUrl, bytes.NewBuffer(jsonPayload))
 	if err != nil {
 		errorutil.ExitError(errors.New("NewRequestPUT: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
 	}
@@ -144,15 +141,16 @@ func insertToConsul(path string, value string, client *http.Client) {
 	if err != nil {
 		errorutil.ExitError(errors.New("ReadPutResponse: " + err.Error()), errorutil.ErrorFailedReadingResponse, &logger)
 	}
+
 	// Cast response to string
 	bodyString 		:= string(bodyBytes)
 
-	if insertOrUpdate == IsUpdating {
-		logger.PrintInfo("UPDATING  - " + path + " -> " + bodyString)
-		updateCount++
-	} else {
-		logger.PrintInfo("INSERTING - " + path + " -> " + bodyString)
-		insertCount++
+	if resp.StatusCode != 200 {
+		errorutil.ExitError(errors.New("TransactionError: " + bodyString), errorutil.ErrorFailedConsulTxn, &logger)
 	}
-	*/
+
+	// All good. Output some status for each transaction operation
+	for _, txn := range transactions {
+		logger.PrintInfo("Operation: " + *txn.KV.Verb + " Path: " + *txn.KV.Key)
+	}
 }
