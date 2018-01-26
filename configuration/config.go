@@ -11,12 +11,13 @@ import (
 	"encoding/json"
 )
 
+const StrategyDry 		= "DRYRUN"
 const StrategyOnce 		= "ONCE"
 const StrategyPoll 		= "POLL"
 const StrategyHook 		= "HOOK"
 
 var logLevel 			= flag.String("log-level", errorutil.LogErr, fmt.Sprintf("The desired log level (%s, %s, %s)", errorutil.LogErr, errorutil.LogInfo, errorutil.LogDebug))
-var strategyFlag 		= flag.String("strategy", StrategyOnce, fmt.Sprintf("The Gonsul operation mode (%s, %s, %s)", StrategyOnce, StrategyPoll, StrategyHook))
+var strategyFlag 		= flag.String("strategy", StrategyOnce, fmt.Sprintf("The Gonsul operation mode (%s, %s, %s, %s)", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
 var repoURLFlag 		= flag.String("repo-url", "", "The repository URL (Full URL with scheme)")
 var repoSSHKeyFlag 		= flag.String("repo-ssh-key", "", "The SSH private key location (Full path)")
 var repoSSHUserFlag 	= flag.String("repo-ssh-user", "git", "The SSH user name")
@@ -85,8 +86,8 @@ func buildConfig() (*Config, error) {
 
 	// Make sure strategy is properly given
 	strategy := strings.ToUpper(*strategyFlag)
-	if strategy != StrategyOnce && strategy != StrategyPoll && strategy != StrategyHook {
-		return nil, errors.New(fmt.Sprintf("strategy invalid, must be one of: %s, %s, %s", StrategyOnce, StrategyPoll, StrategyHook))
+	if strategy != StrategyDry && strategy != StrategyOnce && strategy != StrategyPoll && strategy != StrategyHook {
+		return nil, errors.New(fmt.Sprintf("strategy invalid, must be one of: %s, %s, %s, %s", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
 	}
 
 	// Shall we use a local copy of the repository instead of cloning ourselves

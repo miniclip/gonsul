@@ -1,20 +1,75 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/data"
+	"github.com/miniclip/gonsul/structs"
+	"github.com/miniclip/gonsul/errorutil"
+
+	"github.com/olekukonko/tablewriter"
+	"github.com/cbroglie/mustache"
+
 	"encoding/json"
 	"net/http"
-	"github.com/miniclip/gonsul/errorutil"
 	"errors"
 	"io/ioutil"
 	"encoding/base64"
+	"os"
+	"fmt"
 )
 
-const IsSkipping 	= 0
-const IsInserting 	= 1
-const IsUpdating 	= 2
+func createOperationMatrix(liveData map[string]string, localData map[string]string) structs.OperationMatrix {
+	// Set local error variable
+	var err error
 
-func populateLiveData(client *http.Client) {
+	// Create our Operations array
+	var operations = structs.NewOperationsMatrix()
+
+	// Check for updates or inserts
+	for localKey, localVal := range localData {
+
+		// Make sure we do not have an empty value (Consul KV will not have it)
+		if localVal == "" {
+			continue
+		}
+
+		// Shall we run secret replacement
+		if config.DoSecrets() {
+			localVal, err = mustache.Render(localVal, config.GetSecretsMap())
+		}
+		if err != nil {
+			errorutil.ExitError(errors.New("MustacheRender: " + err.Error()), errorutil.ErrorFailedMustache, &logger)
+		}
+
+		// Base64 encode local value
+		localValB64 := base64.StdEncoding.EncodeToString([]byte(localVal))
+
+		// Does the current local KV key (path) exists in live?
+		if liveVal, ok := liveData[localKey]; ok {
+			// it does, is it different value?
+			if localValB64 != liveVal {
+				// Gentleman we have an update
+				operations.AddUpdate(structs.Entry{KVPath: localKey, Value: localValB64})
+			}
+		} else {
+			// Current key does not exist in live data, we have an insert
+			operations.AddInsert(structs.Entry{KVPath: localKey, Value: localValB64})
+		}
+	}
+	// Now check for deletes
+	// Check for deletes
+	for liveKey := range liveData {
+		if _, ok := localData[liveKey]; !ok {
+			// Not found in local - DELETE
+			operations.AddDelete(structs.Entry{KVPath: liveKey, Value: ""})
+		}
+	}
+
+	return operations
+}
+
+func createLiveData(client *http.Client) map[string]string {
+	// Create some local variables
+	var liveData	map[string]string
+
 	// Create our URL
 	consulUrl := config.GetConsulURL() + "/v1/kv/" + config.GetConsulbasePath() + "?recurse=true"
 	// build our request
@@ -37,7 +92,7 @@ func populateLiveData(client *http.Client) {
 
 	// Invalid response, path is empty then, fresh import
 	if resp.StatusCode == 404 {
-		return
+		return nil
 	}
 
 	// Read response from HTTP Response
@@ -47,7 +102,7 @@ func populateLiveData(client *http.Client) {
 	}
 	// Create a structure for our response, basically an array of
 	// Consul results because we're doing a recurse call
-	var bodyStruct	[]data.ConsulResult
+	var bodyStruct	[]structs.ConsulResult
 	// Convert response to a string and then parse it to our struct
 	bodyString := string(bodyBytes)
 	err = json.Unmarshal([]byte(bodyString), &bodyStruct)
@@ -63,23 +118,34 @@ func populateLiveData(client *http.Client) {
 		// Add to our map
 		liveData[v.Key] = v.Value
 	}
+
+	return liveData
 }
 
-func shouldInsert(path string, value string) int {
+func printOperations(matrix structs.OperationMatrix, printWhat string) {
+	// Add a new line before the table
+	fmt.Println()
 
-	// Set our values (the original base64 response + convert actual value to base64)
-	respValB64		:= liveData[path]
-	currValB64		:= base64.StdEncoding.EncodeToString([]byte(value))
-
-	// If values are equal return false so we do not write value
-	if respValB64 == currValB64 {
-		return IsSkipping
+	// Let's make sure there are any operation
+	if matrix.GetTotalOps() > 0 {
+		// Instantiate our table and set table header
+		table := tablewriter.NewWriter(os.Stdout)
+		table.SetHeader([]string{"", "OPERATION NAME", "CONSUL VERB", "PATH"})
+		// Align our rows
+		table.SetAlignment(tablewriter.ALIGN_LEFT)
+		// Loop each operation and add to table
+		for _, op := range matrix.GetOperations() {
+			if printWhat == structs.OperationAll || printWhat == op.GetType() {
+				if op.GetType() == structs.OperationDelete {
+					table.Append([]string{"!!", op.GetType(), op.GetVerb(), op.GetPath()})
+				} else {
+					table.Append([]string{"", op.GetType(), op.GetVerb(), op.GetPath()})
+				}
+			}
+		}
+		// Outputs ASCII table
+		table.Render()
+	} else {
+		logger.PrintInfo("No operations to process, all synced")
 	}
-
-	// Values are different, is it going to be an update or insert
-	if respValB64 != "" {
-		return IsUpdating
-	}
-
-	return IsInserting
 }

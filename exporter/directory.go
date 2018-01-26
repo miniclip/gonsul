@@ -1,11 +1,12 @@
 package exporter
 
 import (
-	"github.com/miniclip/gonsul/data"
-	"strings"
+	"github.com/miniclip/gonsul/structs"
+
 	"path/filepath"
-	"fmt"
 	"io/ioutil"
+	"strings"
+	"fmt"
 )
 
 func processDir(directory string, localData map[string]string) {
@@ -68,7 +69,7 @@ func cleanFilePath(filePath string) string {
 	return entryFilePath
 }
 
-func createPiece(path string, value string) data.Entry {
+func createPiece(path string, value string) structs.Entry {
 	// Create our Consul base path variable
 	var kvPath		string
 
@@ -79,8 +80,8 @@ func createPiece(path string, value string) data.Entry {
 
 	// Finally append the Consul KV base path to the file path, if base is not an empty string
 	if kvPath != "" {
-		return data.Entry{KVPath:kvPath + "/" + path, Value:value}
+		return structs.Entry{KVPath:kvPath + "/" + path, Value:value}
 	}
 
-	return data.Entry{KVPath: path, Value:value}
+	return structs.Entry{KVPath: path, Value:value}
 }

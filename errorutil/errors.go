@@ -6,6 +6,7 @@ const ErrorFailedConsulConnection 		= 3
 const ErrorFailedReadingResponse 		= 4
 const ErrorFailedJsonDecode 			= 5
 const ErrorFailedCloning 				= 6
+const ErrorFailedMustache 				= 7
 
 type GonsulError struct {
 	Code	int

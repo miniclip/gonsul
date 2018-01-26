@@ -3,30 +3,27 @@ package importer
 import (
 	"github.com/miniclip/gonsul/configuration"
 	"github.com/miniclip/gonsul/errorutil"
-	"github.com/cbroglie/mustache"
+	"github.com/miniclip/gonsul/structs"
+
 	"net/http"
 	"errors"
-	"io/ioutil"
-	"bytes"
 	"time"
 	"fmt"
+	"encoding/json"
 )
 
 var config 		configuration.Config 		// Set our Configuration as global package scope
 var logger 		errorutil.Logger     		// Set our Logger as global package scope
-var localData	map[string]string       	// Our map that will hold our processed local data
-var liveData	map[string]string       	// Our map that will hold our live Consul data
-var insertCount	int							// A simple insert counter
-var updateCount	int							// A simple update counter
-var deleteCount	int							// A simple delete counter
 
-func Start(data map[string]string, conf *configuration.Config, log *errorutil.Logger) {
+func Start(localData map[string]string, conf *configuration.Config, log *errorutil.Logger) {
+
+	// Create some local variables
+	var operations 	structs.OperationMatrix
+	var liveData 	map[string]string
 
 	// Set the appropriate values for our package global variables
-	localData 	= data
 	config 		= *conf
 	logger 		= *log
-	insertCount, updateCount, deleteCount = 0, 0, 0
 
 	// For control over HTTP client headers,
 	// redirect policy, and other settings,
@@ -36,51 +33,68 @@ func Start(data map[string]string, conf *configuration.Config, log *errorutil.Lo
 		Timeout: time.Second * 5,
 	}
 
-	// Populate our Consul live data, to compare before writes
-	populateLiveData(client)
+	// Populate our Consul live data
+	liveData 	= createLiveData(client)
 
-	// Create our Deletion checking
-	checkDeletes(client)
+	// Create our operations Matrix
+	operations 	= createOperationMatrix(liveData, localData)
 
-	// Iterate over our import data
-	for k, v := range localData {
-		insertToConsul(k, v, client)
+	// Check if it's a dry run
+	if conf.GetStrategy() == configuration.StrategyDry {
+		// Print matrix and exit
+		printOperations(operations, structs.OperationAll)
+
+		return
 	}
 
-	logger.PrintInfo(fmt.Sprintf("Inserts: %d records", insertCount))
-	logger.PrintInfo(fmt.Sprintf("Updates: %d records", updateCount))
-	logger.PrintInfo(fmt.Sprintf("Deletes: %d records", deleteCount))
+	// Process our operations matrix
+	processOperations(operations)
+
+	// Print result summary
+	logger.PrintInfo(fmt.Sprintf("Inserts: %d records", operations.GetTotalInserts()))
+	logger.PrintInfo(fmt.Sprintf("Updates: %d records", operations.GetTotalUpdates()))
+	logger.PrintInfo(fmt.Sprintf("Deletes: %d records", operations.GetTotalDeletes()))
 }
 
-func checkDeletes(client *http.Client) {
-	var deletes []string
-
-	// Check for deletes
-	for k := range liveData {
-		if _, ok := localData[k]; !ok {
-			// Not found in local - DELETE
-			deletes = append(deletes, k)
-		}
-	}
-
+func processOperations(matrix structs.OperationMatrix) {
 	// Did we got any deletes and are we allowed to delete them?
-	if !config.AllowDeletes() && len(deletes) != 0 {
+	if !config.AllowDeletes() && matrix.HasDeletes() {
 		// We're not supposed to trigger Consul deletes, output report and exit with error
 		logger.PrintError("We're stopping as there are deletes and Gonsul is running without delete permission")
 		logger.PrintError("Below is all the Consul KV paths that should be deleted")
-		for _, keyForDeletion := range deletes {
-			logger.PrintError("- " + keyForDeletion)
-		}
+
+		// Print matrix and exit
+		printOperations(matrix, structs.OperationDelete)
 		errorutil.ExitError(errors.New(""), errorutil.ErrorDeleteNotAllowed, &logger)
-	} else if len(deletes) != 0 {
-		// We found some deletes to do, and we're allowed to do it. Loop each one triggering the DELETE request
-		for _, keyForDeletion := range deletes {
-			deleteFromConsul(keyForDeletion, client)
+	}
+
+	var transactions []structs.ConsulTxn
+
+	for _, op := range matrix.GetOperations()  {
+		// We need to get the values to use pointers for our structure
+		// so we can clearly identify nil values, as in https://willnorris.com/2014/05/go-rest-apis-and-pointers
+		verb 			:= op.GetVerb()
+		path 			:= op.GetPath()
+		if op.GetType() == structs.OperationDelete {
+			TxnKV 			:= structs.ConsulTxnKV{Verb: &verb, Key: &path}
+			transactions 	= append(transactions, structs.ConsulTxn{KV: TxnKV})
+		} else {
+			val 			:= op.GetValue()
+			TxnKV 			:= structs.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
+			transactions = append(transactions, structs.ConsulTxn{KV: TxnKV})
 		}
 	}
+
+	json, _ := json.MarshalIndent(transactions, "", "  ")
+	fmt.Println(string(json))
+}
+
+func processConsulTransaction(transactions []structs.ConsulTxn) {
+
 }
 
 func insertToConsul(path string, value string, client *http.Client) {
+	/*
 	var err error
 
 	// Create our URL
@@ -91,6 +105,7 @@ func insertToConsul(path string, value string, client *http.Client) {
 	if config.DoSecrets() {
 		value, err = mustache.Render(value, config.GetSecretsMap())
 	}
+
 
 	insertOrUpdate := shouldInsert(path, value)
 
@@ -139,47 +154,5 @@ func insertToConsul(path string, value string, client *http.Client) {
 		logger.PrintInfo("INSERTING - " + path + " -> " + bodyString)
 		insertCount++
 	}
-
-}
-
-func deleteFromConsul(path string, client *http.Client) {
-	var err error
-
-	// Create our URL
-	consulUrl := config.GetConsulURL() + "/v1/kv/" + path
-	logger.PrintDebug("CONSUL: Deleting URL: " + consulUrl)
-
-	// build our request
-	logger.PrintDebug("CONSUL: creating DELETE request")
-	req, err := http.NewRequest("DELETE", consulUrl, nil)
-	if err != nil {
-		errorutil.ExitError(errors.New("NewRequestDELETE: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
-	}
-
-	// Set ACL token
-	req.Header.Set("X-Consul-Token", config.GetConsulACL())
-
-	// Send the request via a client
-	// Do sends an HTTP request and
-	// returns an HTTP response
-	logger.PrintDebug("CONSUL: calling DELETE request")
-	resp, err := client.Do(req)
-	if err != nil {
-		errorutil.ExitError(errors.New("DoDELETE: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
-	}
-
-	// Clean response after function ends
-	defer resp.Body.Close()
-
-	// Read the response body
-	logger.PrintDebug("CONSUL: reading DELETE response")
-	bodyBytes, err 	:= ioutil.ReadAll(resp.Body)
-	if err != nil {
-		errorutil.ExitError(errors.New("ReadDeleteResponse: " + err.Error()), errorutil.ErrorFailedReadingResponse, &logger)
-	}
-	// Cast response to string
-	bodyString 		:= string(bodyBytes)
-
-	logger.PrintInfo("DELETING  - " + path + " -> " + bodyString)
-	deleteCount++
+	*/
 }

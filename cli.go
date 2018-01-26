@@ -18,6 +18,9 @@ func start() {
 	logger 	:= errorutil.NewLogger(config.GetLogLevel())
 
 	switch config.GetStrategy() {
+	case configuration.StrategyDry:
+		startOnce(config, logger)
+
 	case configuration.StrategyOnce:
 		startOnce(config, logger)
 
@@ -43,11 +46,15 @@ func startHook(conf *configuration.Config, log *errorutil.Logger)  {
 }
 
 func startOnce(conf *configuration.Config, log *errorutil.Logger) {
-	log.PrintDebug("Starting in mode: ONCE")
+	if conf.GetStrategy() == configuration.StrategyDry {
+		log.PrintInfo("Starting in mode: DRYRUN")
+	} else if conf.GetStrategy() == configuration.StrategyOnce {
+		log.PrintInfo("Starting in mode: ONCE")
+	}
 	// Export our data
-	datum := exportData(conf, log)
+	localData := exportData(conf, log)
 	// Start data import to Consul
-	importData(datum, conf, log)
+	importData(localData, conf, log)
 }
 
 func exportData(conf *configuration.Config, log *errorutil.Logger) map[string]string {
