@@ -71,15 +71,14 @@ func GetConfig() (*Config, error) {
 
 func buildConfig() (*Config, error) {
 
-	var secrets 	map[string]string
-	var doSecrets 	bool
+	// Set some local variable and some others defaulted
+	var secrets		map[string]string
 	var err 		error
+	clone			:= true
+	doSecrets 		:= false
 
 	// Parse our command line flags
 	flag.Parse()
-
-	// Set some local variable defaults
-	clone	:= true
 
 	// Make sure we have the mandatory flags set
 	if *consulURLFlag == "" || *consulACLFlag == "" {
@@ -107,7 +106,6 @@ func buildConfig() (*Config, error) {
 	}
 
 	// Should we build a secrets map for on-the-fly mustache replacement
-	doSecrets = false
 	if *secretsFile != "" {
 		secrets, err = buildSecretsMap(*secretsFile, *repoRootDirFlag)
 		if err != nil {
