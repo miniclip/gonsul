@@ -32,6 +32,7 @@ var consulBasePathFlag 	= flag.String("consul-base-path", "", "The base KV path 
 var expandJSONFlag 		= flag.Bool("expand-json", false, "Expand and parse JSON files as full paths?")
 var secretsFile 		= flag.String("secrets-file", "", "A key value json file with placeholders->secrets mapping, in order to do on the fly replace")
 var allowDeletesFlag 	= flag.Bool("allow-deletes", false, "Show Gonsul issue deletes? (If not, nothing will be done and a report on conflicting deletes will be shown)")
+var pollIntervalFlag 	= flag.Int("poll-interval", 60, "The number of seconds for the repository polling interval")
 
 var config				*Config
 
@@ -53,6 +54,7 @@ type Config struct {
 	doSecrets    		bool
 	secretsMap			map[string]string
 	allowDeletes		bool
+	pollInterval		int
 }
 
 func GetConfig() (*Config, error) {
@@ -104,6 +106,7 @@ func buildConfig() (*Config, error) {
 		return nil, errors.New(fmt.Sprintf("log level invalid, must be one of: %s, %s, %s", errorutil.LogErr, errorutil.LogInfo, errorutil.LogDebug))
 	}
 
+	// Should we build a secrets map for on-the-fly mustache replacement
 	doSecrets = false
 	if *secretsFile != "" {
 		secrets, err = buildSecretsMap(*secretsFile, *repoRootDirFlag)
@@ -131,6 +134,7 @@ func buildConfig() (*Config, error) {
 		doSecrets:		doSecrets,
 		secretsMap:		secrets,
 		allowDeletes:	*allowDeletesFlag,
+		pollInterval:	*pollIntervalFlag,
 	}, nil
 }
 
@@ -200,6 +204,10 @@ func (config *Config) GetSecretsMap() map[string]string {
 
 func (config *Config) AllowDeletes() bool {
 	return config.allowDeletes
+}
+
+func (config *Config) GetPollInterval() int {
+	return config.pollInterval
 }
 
 func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string, error) {
