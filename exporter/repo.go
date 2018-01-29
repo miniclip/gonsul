@@ -3,9 +3,9 @@ package exporter
 import (
 	"github.com/miniclip/gonsul/errorutil"
 
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
-	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4"
+	"gopkg.in/src-d/go-git.v4/plumbing"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 
 	"errors"
 	"fmt"
@@ -13,18 +13,18 @@ import (
 
 func downloadRepo(fileSystemPath string, url string) {
 	// Check if SSH Key path was given
-	var auth	ssh.AuthMethod
-	var sshUser	= config.GetRepoSSHUser()
-	var sshKey	= config.GetRepoSSHKey()
+	var auth ssh.AuthMethod
+	var sshUser = config.GetRepoSSHUser()
+	var sshKey = config.GetRepoSSHKey()
 
 	if sshUser != "" && sshKey != "" {
 		auth, _ = ssh.NewPublicKeysFromFile(sshUser, sshKey, "")
 	}
 
 	repo, err := git.PlainClone(fileSystemPath, false, &git.CloneOptions{
-		URL:               	url,
-		RecurseSubmodules: 	git.DefaultSubmoduleRecursionDepth,
-		Auth: 				auth,
+		URL:               url,
+		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
+		Auth:              auth,
 	})
 
 	if err != nil {
@@ -38,7 +38,7 @@ func downloadRepo(fileSystemPath string, url string) {
 				errors.New("REPO: failed clone and directory is not a git repo, try cleaning dir"),
 				errorutil.ErrorFailedCloning,
 				&logger,
-				)
+			)
 		}
 
 		logger.PrintDebug(fmt.Sprintf("REPO: git directory openned: %s", config.GetRepoRootDir()))
@@ -65,8 +65,8 @@ func tryCheckout(repo *git.Repository, auth *ssh.AuthMethod) {
 	logger.PrintDebug(fmt.Sprintf("REPO: pulling changes: %s", config.GetRepoBranch()))
 	// We shall ignore error here, as Pull return messages such as "non-fast-forward update" as an error
 	err = workTree.Pull(&git.PullOptions{
-		RemoteName:		config.GetRepoRemoteName(),
-		Auth:			*auth,
+		RemoteName: config.GetRepoRemoteName(),
+		Auth:       *auth,
 	})
 	// TODO: Even though the comment just above is true, we should handle this cases in a better way
 	if err != nil {
@@ -78,13 +78,13 @@ func tryCheckout(repo *git.Repository, auth *ssh.AuthMethod) {
 	logger.PrintDebug(fmt.Sprintf("REPO: checking out: %s", config.GetRepoBranch()))
 	err = workTree.Checkout(&git.CheckoutOptions{
 		Branch: plumbing.ReferenceName(fmt.Sprintf("refs/remotes/%s/%s", config.GetRepoRemoteName(), config.GetRepoBranch())),
-		Create:	false,
-		Force:	true,
+		Create: false,
+		Force:  true,
 	})
 	checkRepoError(err)
 }
 
-func checkIfRemoteValid (remotes []*git.Remote) bool {
+func checkIfRemoteValid(remotes []*git.Remote) bool {
 	// Iterate over remotes
 	for _, remote := range remotes {
 		// Iterate over URLs
@@ -101,6 +101,6 @@ func checkIfRemoteValid (remotes []*git.Remote) bool {
 
 func checkRepoError(err error) {
 	if err != nil {
-		errorutil.ExitError(errors.New("REPO: " + err.Error()), errorutil.ErrorFailedCloning, &logger)
+		errorutil.ExitError(errors.New("REPO: "+err.Error()), errorutil.ErrorFailedCloning, &logger)
 	}
 }

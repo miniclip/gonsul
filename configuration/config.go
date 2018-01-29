@@ -4,18 +4,18 @@ import (
 	"github.com/miniclip/gonsul/errorutil"
 
 	"encoding/json"
-	"io/ioutil"
-	"strings"
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
 )
 
-const StrategyDry 		= "DRYRUN"
-const StrategyOnce 		= "ONCE"
-const StrategyPoll 		= "POLL"
-const StrategyHook 		= "HOOK"
+const StrategyDry = "DRYRUN"
+const StrategyOnce = "ONCE"
+const StrategyPoll = "POLL"
+const StrategyHook = "HOOK"
 
 var logLevel 			= flag.String("log-level", errorutil.LogErr, fmt.Sprintf("The desired log level (%s, %s, %s)", errorutil.LogErr, errorutil.LogInfo, errorutil.LogDebug))
 var strategyFlag 		= flag.String("strategy", StrategyOnce, fmt.Sprintf("The Gonsul operation mode (%s, %s, %s, %s)", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
@@ -34,27 +34,27 @@ var secretsFile 		= flag.String("secrets-file", "", "A key value json file with 
 var allowDeletesFlag 	= flag.Bool("allow-deletes", false, "Show Gonsul issue deletes? (If not, nothing will be done and a report on conflicting deletes will be shown)")
 var pollIntervalFlag 	= flag.Int("poll-interval", 60, "The number of seconds for the repository polling interval")
 
-var config				*Config
+var config *Config
 
 type Config struct {
-	shouldClone     	bool
-	logLevel        	int
-	strategy        	string
-	repoUrl         	string
-	repoSSHKey      	string
-	repoSSHUser     	string
-	repoBranch      	string
-	repoRemoteName  	string
-	repoBasePath    	string
-	repoRootDir     	string
-	consulURL       	string
-	consulACL       	string
-	consulBasePath    	string
-	expandJSON    		bool
-	doSecrets    		bool
-	secretsMap			map[string]string
-	allowDeletes		bool
-	pollInterval		int
+	shouldClone    bool
+	logLevel       int
+	strategy       string
+	repoUrl        string
+	repoSSHKey     string
+	repoSSHUser    string
+	repoBranch     string
+	repoRemoteName string
+	repoBasePath   string
+	repoRootDir    string
+	consulURL      string
+	consulACL      string
+	consulBasePath string
+	expandJSON     bool
+	doSecrets      bool
+	secretsMap     map[string]string
+	allowDeletes   bool
+	pollInterval   int
 }
 
 func GetConfig() (*Config, error) {
@@ -72,10 +72,10 @@ func GetConfig() (*Config, error) {
 func buildConfig() (*Config, error) {
 
 	// Set some local variable and some others defaulted
-	var secrets		map[string]string
-	var err 		error
-	clone			:= true
-	doSecrets 		:= false
+	var secrets map[string]string
+	var err error
+	clone := true
+	doSecrets := false
 
 	// Parse our command line flags
 	flag.Parse()
@@ -100,7 +100,7 @@ func buildConfig() (*Config, error) {
 	}
 
 	// Make sure log level is properly set
-	errorLevel 	:= errorutil.ErrorLevels[strings.ToUpper(*logLevel)]
+	errorLevel := errorutil.ErrorLevels[strings.ToUpper(*logLevel)]
 	if errorLevel < errorutil.LogLevelErr {
 		return nil, errors.New(fmt.Sprintf("log level invalid, must be one of: %s, %s, %s", errorutil.LogErr, errorutil.LogInfo, errorutil.LogDebug))
 	}
@@ -115,24 +115,24 @@ func buildConfig() (*Config, error) {
 	}
 
 	return &Config{
-		shouldClone:   	clone,
-		logLevel:      	errorLevel,
-		strategy:      	strategy,
-		repoUrl:       	*repoURLFlag,
-		repoSSHKey:    	*repoSSHKeyFlag,
-		repoSSHUser:   	*repoSSHUserFlag,
-		repoBranch:    	*repoBranchFlag,
-		repoRemoteName:	*repoRemoteNameFlag,
-		repoBasePath:  	*repoBasePathFlag,
-		repoRootDir:   	*repoRootDirFlag,
-		consulURL:     	*consulURLFlag,
-		consulACL:     	*consulACLFlag,
-		consulBasePath:	*consulBasePathFlag,
-		expandJSON:		*expandJSONFlag,
-		doSecrets:		doSecrets,
-		secretsMap:		secrets,
-		allowDeletes:	*allowDeletesFlag,
-		pollInterval:	*pollIntervalFlag,
+		shouldClone:    clone,
+		logLevel:       errorLevel,
+		strategy:       strategy,
+		repoUrl:        *repoURLFlag,
+		repoSSHKey:     *repoSSHKeyFlag,
+		repoSSHUser:    *repoSSHUserFlag,
+		repoBranch:     *repoBranchFlag,
+		repoRemoteName: *repoRemoteNameFlag,
+		repoBasePath:   *repoBasePathFlag,
+		repoRootDir:    *repoRootDirFlag,
+		consulURL:      *consulURLFlag,
+		consulACL:      *consulACLFlag,
+		consulBasePath: *consulBasePathFlag,
+		expandJSON:     *expandJSONFlag,
+		doSecrets:      doSecrets,
+		secretsMap:     secrets,
+		allowDeletes:   *allowDeletesFlag,
+		pollInterval:   *pollIntervalFlag,
 	}, nil
 }
 
@@ -220,7 +220,7 @@ func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string
 	}
 
 	// we're still here, we got a file, open it, try to parse JSON and return our map
-	content, err 	:= ioutil.ReadFile(file) // just pass the file name
+	content, err := ioutil.ReadFile(file) // just pass the file name
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("could not open file (%s). Error message: %s", secretsFile, err.Error()))
 	}

@@ -4,16 +4,18 @@ import (
 	"github.com/miniclip/gonsul/configuration"
 	"github.com/miniclip/gonsul/errorutil"
 	"github.com/miniclip/gonsul/once"
+
 	"time"
+	"fmt"
 )
 
-var config 		configuration.Config 		// Set our Configuration as global package scope
-var logger 		errorutil.Logger     		// Set our Logger as global package scope
+var config configuration.Config // Set our Configuration as global package scope
+var logger errorutil.Logger     // Set our Logger as global package scope
 
 func Start(conf *configuration.Config, log *errorutil.Logger) {
 	// Set the appropriate values for our package global variables
-	config 		= *conf
-	logger 		= *log
+	config = *conf
+	logger = *log
 
 	loop()
 }
@@ -22,7 +24,7 @@ func loop() {
 	// Forever
 	count := 1
 	for {
-		logger.PrintDebug("POLL: performing iteration - " + string(count))
+		logger.PrintDebug(fmt.Sprintf("POLL: performing iteration %d", count))
 		// Run our once step
 		once.Start(&config, &logger)
 

@@ -5,24 +5,24 @@ import (
 	"github.com/miniclip/gonsul/errorutil"
 	"github.com/miniclip/gonsul/structs"
 
-	"net/http"
 	"errors"
-	"time"
 	"fmt"
+	"net/http"
+	"time"
 )
 
-var config 		configuration.Config 		// Set our Configuration as global package scope
-var logger 		errorutil.Logger     		// Set our Logger as global package scope
+var config configuration.Config // Set our Configuration as global package scope
+var logger errorutil.Logger     // Set our Logger as global package scope
 
 func Start(localData map[string]string, conf *configuration.Config, log *errorutil.Logger) {
 
 	// Create some local variables
-	var ops 		structs.OperationMatrix
-	var liveData 	map[string]string
+	var ops structs.OperationMatrix
+	var liveData map[string]string
 
 	// Set the appropriate values for our package global variables
-	config 		= *conf
-	logger 		= *log
+	config = *conf
+	logger = *log
 
 	// For control over HTTP client headers,
 	// redirect policy, and other settings,
@@ -33,10 +33,10 @@ func Start(localData map[string]string, conf *configuration.Config, log *errorut
 	}
 
 	// Populate our Consul live data
-	liveData 	= createLiveData(client)
+	liveData = createLiveData(client)
 
 	// Create our operations Matrix
-	ops 		= createOperationMatrix(liveData, localData)
+	ops = createOperationMatrix(liveData, localData)
 
 	// Check if it's a dry run
 	if conf.GetStrategy() == configuration.StrategyDry {
@@ -67,18 +67,18 @@ func processOperations(matrix structs.OperationMatrix, client *http.Client) {
 
 	var transactions []structs.ConsulTxn
 
-	for _, op := range matrix.GetOperations()  {
+	for _, op := range matrix.GetOperations() {
 		// We need to get the values to use pointers for our structure
 		// so we can clearly identify nil values, as in https://willnorris.com/2014/05/go-rest-apis-and-pointers
-		verb	:= op.GetVerb()
-		path 	:= op.GetPath()
+		verb := op.GetVerb()
+		path := op.GetPath()
 		if op.GetType() == structs.OperationDelete {
-			TxnKV 			:= structs.ConsulTxnKV{Verb: &verb, Key: &path}
-			transactions 	= append(transactions, structs.ConsulTxn{KV: TxnKV})
+			TxnKV := structs.ConsulTxnKV{Verb: &verb, Key: &path}
+			transactions = append(transactions, structs.ConsulTxn{KV: TxnKV})
 		} else {
-			val 			:= op.GetValue()
-			TxnKV 			:= structs.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
-			transactions 	= append(transactions, structs.ConsulTxn{KV: TxnKV})
+			val := op.GetValue()
+			TxnKV := structs.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
+			transactions = append(transactions, structs.ConsulTxn{KV: TxnKV})
 		}
 
 		if len(transactions) == ConsulTxnLimit {

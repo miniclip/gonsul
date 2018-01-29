@@ -3,10 +3,10 @@ package exporter
 import (
 	"github.com/miniclip/gonsul/structs"
 
-	"path/filepath"
-	"io/ioutil"
-	"strings"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
+	"strings"
 )
 
 func processDir(directory string, localData map[string]string) {
@@ -16,15 +16,15 @@ func processDir(directory string, localData map[string]string) {
 	for _, file := range files {
 		if file.IsDir() {
 			// We found a directory, recurse it
-			newDir 			:= directory + "/" + file.Name()
+			newDir := directory + "/" + file.Name()
 			processDir(newDir, localData)
 		} else {
-			filePath 		:= directory + "/" + file.Name()
-			ext				:= filepath.Ext(filePath)
+			filePath := directory + "/" + file.Name()
+			ext := filepath.Ext(filePath)
 			if ext != ".json" && ext != ".txt" {
 				continue
 			}
-			content, err 	:= ioutil.ReadFile(filePath) // just pass the file name
+			content, err := ioutil.ReadFile(filePath) // just pass the file name
 			if err != nil {
 				fmt.Print(err)
 			}
@@ -35,8 +35,8 @@ func processDir(directory string, localData map[string]string) {
 
 func parseFile(filePath string, value string, localData map[string]string) {
 	// Extract our file extension and cleanup file path
-	ext		:= filepath.Ext(filePath)
-	path	:= cleanFilePath(filePath)
+	ext := filepath.Ext(filePath)
+	path := cleanFilePath(filePath)
 	// Check if we should parse JSON files
 	if config.ShouldExpandJSON() {
 		// Check if the file is a JSON one
@@ -58,30 +58,30 @@ func parseFile(filePath string, value string, localData map[string]string) {
 func cleanFilePath(filePath string) string {
 	// Set part of the config that should be removed from the current
 	// file system path in order to build our final Consul KV path
-	replace 		:= config.GetRepoRootDir() + "/" + config.GetRepoBasePath()
+	replace := config.GetRepoRootDir() + "/" + config.GetRepoBasePath()
 	// Remove the above from the file system path
-	entryFilePath 	:= strings.Replace(filePath, replace, "", 1)
+	entryFilePath := strings.Replace(filePath, replace, "", 1)
 	// Remove any left slash
-	entryFilePath 	 = strings.Replace(entryFilePath, "/", "", 1)
+	entryFilePath = strings.Replace(entryFilePath, "/", "", 1)
 	// Remove the file extension from the file system path
-	entryFilePath 	 = strings.TrimSuffix(entryFilePath, filepath.Ext(entryFilePath))
+	entryFilePath = strings.TrimSuffix(entryFilePath, filepath.Ext(entryFilePath))
 
 	return entryFilePath
 }
 
 func createPiece(path string, value string) structs.Entry {
 	// Create our Consul base path variable
-	var kvPath		string
+	var kvPath string
 
 	// Check if we have a Consul KV base path
 	if config.GetConsulbasePath() != "" {
-		kvPath		 = config.GetConsulbasePath()
+		kvPath = config.GetConsulbasePath()
 	}
 
 	// Finally append the Consul KV base path to the file path, if base is not an empty string
 	if kvPath != "" {
-		return structs.Entry{KVPath:kvPath + "/" + path, Value:value}
+		return structs.Entry{KVPath: kvPath + "/" + path, Value: value}
 	}
 
-	return structs.Entry{KVPath: path, Value:value}
+	return structs.Entry{KVPath: path, Value: value}
 }

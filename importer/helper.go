@@ -1,19 +1,19 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/structs"
 	"github.com/miniclip/gonsul/errorutil"
+	"github.com/miniclip/gonsul/structs"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/cbroglie/mustache"
+	"github.com/olekukonko/tablewriter"
 
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
-	"errors"
 	"os"
-	"fmt"
 )
 
 func createOperationMatrix(liveData map[string]string, localData map[string]string) structs.OperationMatrix {
@@ -36,7 +36,7 @@ func createOperationMatrix(liveData map[string]string, localData map[string]stri
 			localVal, err = mustache.Render(localVal, config.GetSecretsMap())
 		}
 		if err != nil {
-			errorutil.ExitError(errors.New("MustacheRender: " + err.Error()), errorutil.ErrorFailedMustache, &logger)
+			errorutil.ExitError(errors.New("MustacheRender: "+err.Error()), errorutil.ErrorFailedMustache, &logger)
 		}
 
 		// Base64 encode local value
@@ -68,14 +68,14 @@ func createOperationMatrix(liveData map[string]string, localData map[string]stri
 
 func createLiveData(client *http.Client) map[string]string {
 	// Create some local variables
-	var liveData	map[string]string
+	var liveData map[string]string
 
 	// Create our URL
 	consulUrl := config.GetConsulURL() + "/v1/kv/" + config.GetConsulbasePath() + "?recurse=true"
 	// build our request
 	req, err := http.NewRequest("GET", consulUrl, nil)
 	if err != nil {
-		errorutil.ExitError(errors.New("NewRequestGET: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
+		errorutil.ExitError(errors.New("NewRequestGET: "+err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
 	}
 
 	// Set ACL token
@@ -84,7 +84,7 @@ func createLiveData(client *http.Client) map[string]string {
 	// Send the request via a client, Do sends an HTTP request and returns an HTTP response
 	resp, err := client.Do(req)
 	if err != nil {
-		errorutil.ExitError(errors.New("DoGET: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
+		errorutil.ExitError(errors.New("DoGET: "+err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
 	}
 
 	// Clean response after function ends
@@ -96,18 +96,18 @@ func createLiveData(client *http.Client) map[string]string {
 	}
 
 	// Read response from HTTP Response
-	bodyBytes, err 	:= ioutil.ReadAll(resp.Body)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		errorutil.ExitError(errors.New("ReadGetResponse: " + err.Error()), errorutil.ErrorFailedReadingResponse, &logger)
+		errorutil.ExitError(errors.New("ReadGetResponse: "+err.Error()), errorutil.ErrorFailedReadingResponse, &logger)
 	}
 	// Create a structure for our response, basically an array of
 	// Consul results because we're doing a recurse call
-	var bodyStruct	[]structs.ConsulResult
+	var bodyStruct []structs.ConsulResult
 	// Convert response to a string and then parse it to our struct
 	bodyString := string(bodyBytes)
 	err = json.Unmarshal([]byte(bodyString), &bodyStruct)
 	if err != nil {
-		errorutil.ExitError(errors.New("Unmarshal: " + err.Error()), errorutil.ErrorFailedJsonDecode, &logger)
+		errorutil.ExitError(errors.New("Unmarshal: "+err.Error()), errorutil.ErrorFailedJsonDecode, &logger)
 	}
 
 	// All good so far, instantiate our map

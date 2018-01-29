@@ -7,20 +7,20 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"net/http"
-	"fmt"
 	"errors"
+	"fmt"
+	"net/http"
 	"sync"
 )
 
-var mutex 		*sync.Mutex
-var config 		configuration.Config 		// Set our Configuration as global package scope
-var logger 		errorutil.Logger     		// Set our Logger as global package scope
+var mutex *sync.Mutex
+var config configuration.Config // Set our Configuration as global package scope
+var logger errorutil.Logger     // Set our Logger as global package scope
 
 func Start(conf *configuration.Config, log *errorutil.Logger) {
 	// Set the appropriate values for our package global variables
-	config 		= *conf
-	logger 		= *log
+	config = *conf
+	logger = *log
 
 	// Initialize our mutex
 	mutex = &sync.Mutex{}
@@ -29,7 +29,7 @@ func Start(conf *configuration.Config, log *errorutil.Logger) {
 	router.HandleFunc("/v1/run", hookHandler).Methods("GET")
 	err := http.ListenAndServe(":8000", router)
 	if err != nil {
-		errorutil.ExitError(errors.New("Hook: " + err.Error()), errorutil.ErrorFailedHTTPServer, &logger)
+		errorutil.ExitError(errors.New("Hook: "+err.Error()), errorutil.ErrorFailedHTTPServer, &logger)
 	}
 }
 

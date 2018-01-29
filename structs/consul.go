@@ -1,36 +1,36 @@
 package structs
 
-const OperationInsert	= "INSERT"
-const OperationUpdate	= "UPDATE"
-const OperationDelete	= "DELETE"
-const OperationAll		= "ALL"
+const OperationInsert = "INSERT"
+const OperationUpdate = "UPDATE"
+const OperationDelete = "DELETE"
+const OperationAll = "ALL"
 
 // A consul GET response
 type ConsulResult struct {
-	LockIndex		int			`json:"lockIndex"`
-	Key				string		`json:"Key"`
-	Flags			int			`json:"Flags"`
-	Value			string		`json:"Value"`
-	CreateIndex		int			`json:"CreateIndex"`
-	ModifyIndex		int			`json:"ModifyIndex"`
+	LockIndex   int    `json:"lockIndex"`
+	Key         string `json:"Key"`
+	Flags       int    `json:"Flags"`
+	Value       string `json:"Value"`
+	CreateIndex int    `json:"CreateIndex"`
+	ModifyIndex int    `json:"ModifyIndex"`
 }
 
 // A consul Transaction payload
 type ConsulTxn struct {
-	KV				ConsulTxnKV	`json:"KV"`
+	KV ConsulTxnKV `json:"KV"`
 }
 
 // A consul KV Transaction payload
 type ConsulTxnKV struct {
-	Verb			*string		`json:"Verb"`
-	Key				*string		`json:"Key"`
-	Value			*string		`json:"Value,omitempty"`
+	Verb  *string `json:"Verb"`
+	Key   *string `json:"Key"`
+	Value *string `json:"Value,omitempty"`
 }
 
 // Our single operation structure
 type operation struct {
-	opType 	string
-	entry   Entry
+	opType string
+	entry  Entry
 }
 
 func (op *operation) GetType() string {
@@ -60,11 +60,11 @@ func (op *operation) GetValue() string {
 
 // Our operations matrix
 type OperationMatrix struct {
-	total			int
-	inserts			int
-	updates			int
-	deletes			int
-	operations		[]operation
+	total      int
+	inserts    int
+	updates    int
+	deletes    int
+	operations []operation
 }
 
 func (matrix *OperationMatrix) AddInsert(entry Entry) {

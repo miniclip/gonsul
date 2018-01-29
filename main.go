@@ -1,9 +1,9 @@
 package main
 
 import (
+	"github.com/miniclip/gonsul/app"
 	"github.com/miniclip/gonsul/configuration"
 	"github.com/miniclip/gonsul/errorutil"
-	"github.com/miniclip/gonsul/app"
 
 	"os"
 )
@@ -22,14 +22,14 @@ func main() {
 
 func bootstrap() {
 	// Build our configuration
-	config, err 	:= configuration.GetConfig()
+	config, err := configuration.GetConfig()
 	if err != nil {
 		var logger = errorutil.NewLogger(0)
 		errorutil.ExitError(err, errorutil.ErrorBadParams, logger)
 	}
 
 	// Build our logger
-	logger 	:= errorutil.NewLogger(config.GetLogLevel())
+	logger := errorutil.NewLogger(config.GetLogLevel())
 
 	// Start our application
 	app.Start(config, logger)

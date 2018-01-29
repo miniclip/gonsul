@@ -17,7 +17,7 @@ func Start(conf *configuration.Config, log *errorutil.Logger) map[string]string 
 	var localData = map[string]string{}
 
 	// Set the path where Gonsul should start traversing files to add to Consul
-	repoDir 	:= config.GetRepoRootDir() + "/" + config.GetRepoBasePath()
+	repoDir := config.GetRepoRootDir() + "/" + config.GetRepoBasePath()
 
 	// Should we clone the repo, or is it already done via 3rd party
 	if config.IsCloning() {

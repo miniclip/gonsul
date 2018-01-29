@@ -8,13 +8,13 @@ import (
 	"github.com/miniclip/gonsul/poll"
 )
 
-var config 		configuration.Config 		// Set our Configuration as global package scope
-var logger 		errorutil.Logger     		// Set our Logger as global package scope
+var config configuration.Config // Set our Configuration as global package scope
+var logger errorutil.Logger     // Set our Logger as global package scope
 
-func Start(conf *configuration.Config, log *errorutil.Logger)  {
+func Start(conf *configuration.Config, log *errorutil.Logger) {
 	// Set the appropriate values for our package global variables
-	config 		= *conf
-	logger 		= *log
+	config = *conf
+	logger = *log
 
 	// Switch our run strategy
 	switch config.GetStrategy() {
@@ -33,13 +33,13 @@ func Start(conf *configuration.Config, log *errorutil.Logger)  {
 	}
 }
 
-func startPolling()  {
+func startPolling() {
 	logger.PrintInfo("Starting in mode: POLL")
 
 	poll.Start(&config, &logger)
 }
 
-func startHook()  {
+func startHook() {
 	logger.PrintInfo("Starting in mode: HOOK")
 
 	hook.Start(&config, &logger)

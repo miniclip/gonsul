@@ -12,7 +12,7 @@ const ErrorFailedMustache 				= 70
 const ErrorFailedHTTPServer				= 80
 
 type GonsulError struct {
-	Code	int
+	Code int
 }
 
 func ExitError(err error, errorCode int, logger *Logger) {

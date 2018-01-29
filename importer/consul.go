@@ -4,11 +4,11 @@ import (
 	"github.com/miniclip/gonsul/errorutil"
 	"github.com/miniclip/gonsul/structs"
 
+	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
-	"errors"
-	"bytes"
 )
 
 const ConsulTxnLimit = 64
@@ -17,7 +17,7 @@ func processConsulTransaction(transactions []structs.ConsulTxn, client *http.Cli
 	// Encode our transaction into a JSON payload
 	jsonPayload, err := json.Marshal(transactions)
 	if err != nil {
-		errorutil.ExitError(errors.New("Marshal: " + err.Error()), errorutil.ErrorFailedJsonEncode, &logger)
+		errorutil.ExitError(errors.New("Marshal: "+err.Error()), errorutil.ErrorFailedJsonEncode, &logger)
 	}
 
 	// Create our URL
@@ -28,7 +28,7 @@ func processConsulTransaction(transactions []structs.ConsulTxn, client *http.Cli
 	logger.PrintDebug("CONSUL: creating PUT request")
 	req, err := http.NewRequest("PUT", consulUrl, bytes.NewBuffer(jsonPayload))
 	if err != nil {
-		errorutil.ExitError(errors.New("NewRequestPUT: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
+		errorutil.ExitError(errors.New("NewRequestPUT: "+err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
 	}
 
 	// Set ACL token
@@ -40,7 +40,7 @@ func processConsulTransaction(transactions []structs.ConsulTxn, client *http.Cli
 	logger.PrintDebug("CONSUL: calling PUT request")
 	resp, err := client.Do(req)
 	if err != nil {
-		errorutil.ExitError(errors.New("DoPUT: " + err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
+		errorutil.ExitError(errors.New("DoPUT: "+err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
 	}
 
 	// Clean response after function ends
@@ -48,16 +48,16 @@ func processConsulTransaction(transactions []structs.ConsulTxn, client *http.Cli
 
 	// Read the response body
 	logger.PrintDebug("CONSUL: reading PUT response")
-	bodyBytes, err 	:= ioutil.ReadAll(resp.Body)
+	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		errorutil.ExitError(errors.New("ReadPutResponse: " + err.Error()), errorutil.ErrorFailedReadingResponse, &logger)
+		errorutil.ExitError(errors.New("ReadPutResponse: "+err.Error()), errorutil.ErrorFailedReadingResponse, &logger)
 	}
 
 	// Cast response to string
-	bodyString 		:= string(bodyBytes)
+	bodyString := string(bodyBytes)
 
 	if resp.StatusCode != 200 {
-		errorutil.ExitError(errors.New("TransactionError: " + bodyString), errorutil.ErrorFailedConsulTxn, &logger)
+		errorutil.ExitError(errors.New("TransactionError: "+bodyString), errorutil.ErrorFailedConsulTxn, &logger)
 	}
 
 	// All good. Output some status for each transaction operation

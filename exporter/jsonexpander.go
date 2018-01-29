@@ -4,9 +4,9 @@ import (
 	"github.com/miniclip/gonsul/errorutil"
 
 	"encoding/json"
-	"strconv"
 	"errors"
 	"fmt"
+	"strconv"
 )
 
 func expandJSON(path string, jsonData string, localData map[string]string) {
@@ -22,7 +22,7 @@ func expandJSON(path string, jsonData string, localData map[string]string) {
 			errors.New(fmt.Sprintf("error parsing JSON file: %s", err.Error())),
 			errorutil.ErrorFailedJsonDecode,
 			&logger,
-			)
+		)
 	}
 
 	// Iterate over our "generic" JSON structure
