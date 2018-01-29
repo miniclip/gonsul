@@ -68,7 +68,12 @@ func tryCheckout(repo *git.Repository, auth *ssh.AuthMethod) {
 		RemoteName:		config.GetRepoRemoteName(),
 		Auth:			*auth,
 	})
-	logger.PrintDebug(fmt.Sprintf("REPO: pull complete: %s", err.Error()))
+	// TODO: Even though the comment just above is true, we should handle this cases in a better way
+	if err != nil {
+		logger.PrintDebug(fmt.Sprintf("REPO: pull complete: %s", err.Error()))
+	} else {
+		logger.PrintDebug("REPO: pull complete")
+	}
 
 	logger.PrintDebug(fmt.Sprintf("REPO: checking out: %s", config.GetRepoBranch()))
 	err = workTree.Checkout(&git.CheckoutOptions{

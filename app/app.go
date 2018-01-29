@@ -5,8 +5,7 @@ import (
 	"github.com/miniclip/gonsul/errorutil"
 	"github.com/miniclip/gonsul/hook"
 	"github.com/miniclip/gonsul/once"
-
-	"errors"
+	"github.com/miniclip/gonsul/poll"
 )
 
 var config 		configuration.Config 		// Set our Configuration as global package scope
@@ -35,8 +34,9 @@ func Start(conf *configuration.Config, log *errorutil.Logger)  {
 }
 
 func startPolling()  {
-	/* TODO */
-	errorutil.ExitError(errors.New("POLLING: NOT IMPLEMENTED YET"), 100, &logger)
+	logger.PrintInfo("Starting in mode: POLL")
+
+	poll.Start(&config, &logger)
 }
 
 func startHook()  {
