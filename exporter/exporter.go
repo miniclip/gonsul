@@ -8,7 +8,7 @@ import (
 var config configuration.Config
 var logger errorutil.Logger
 
-func Export(conf *configuration.Config, log *errorutil.Logger) map[string]string {
+func Start(conf *configuration.Config, log *errorutil.Logger) map[string]string {
 	// Set the appropriate values for our package global variables
 	config = *conf
 	logger = *log

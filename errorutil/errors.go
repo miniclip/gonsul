@@ -9,6 +9,7 @@ const ErrorFailedJsonEncode 			= 50
 const ErrorFailedJsonDecode 			= 51
 const ErrorFailedCloning 				= 60
 const ErrorFailedMustache 				= 70
+const ErrorFailedHTTPServer				= 80
 
 type GonsulError struct {
 	Code	int
