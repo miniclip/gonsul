@@ -37,24 +37,25 @@ var pollIntervalFlag 	= flag.Int("poll-interval", 60, "The number of seconds for
 var config *Config
 
 type Config struct {
-	shouldClone    bool
-	logLevel       int
-	strategy       string
-	repoUrl        string
-	repoSSHKey     string
-	repoSSHUser    string
-	repoBranch     string
-	repoRemoteName string
-	repoBasePath   string
-	repoRootDir    string
-	consulURL      string
-	consulACL      string
-	consulBasePath string
-	expandJSON     bool
-	doSecrets      bool
-	secretsMap     map[string]string
-	allowDeletes   bool
-	pollInterval   int
+	shouldClone    	bool
+	logLevel       	int
+	strategy       	string
+	repoUrl        	string
+	repoSSHKey     	string
+	repoSSHUser    	string
+	repoBranch     	string
+	repoRemoteName 	string
+	repoBasePath   	string
+	repoRootDir    	string
+	consulURL      	string
+	consulACL      	string
+	consulBasePath 	string
+	expandJSON     	bool
+	doSecrets      	bool
+	secretsMap     	map[string]string
+	allowDeletes   	bool
+	pollInterval   	int
+	Working			chan bool
 }
 
 func GetConfig() (*Config, error) {
@@ -133,6 +134,7 @@ func buildConfig() (*Config, error) {
 		secretsMap:     secrets,
 		allowDeletes:   *allowDeletesFlag,
 		pollInterval:   *pollIntervalFlag,
+		Working: 		make(chan bool, 1),
 	}, nil
 }
 

@@ -6,6 +6,11 @@ import (
 	"github.com/miniclip/gonsul/hook"
 	"github.com/miniclip/gonsul/once"
 	"github.com/miniclip/gonsul/poll"
+
+	"os/signal"
+	"syscall"
+	"fmt"
+	"os"
 )
 
 var config configuration.Config // Set our Configuration as global package scope
@@ -16,12 +21,24 @@ func Start(conf *configuration.Config, log *errorutil.Logger) {
 	config = *conf
 	logger = *log
 
+	// Create our channel for the Signal and relay Signal Notify to it
+	sigChannel := make(chan os.Signal)
+	signal.Notify(sigChannel, syscall.SIGINT, syscall.SIGTERM)
+
+	// Spin a routine to wait for a Signal
+	go func() {
+		// Wait for a signal through the channel
+		<-sigChannel
+		// Try to write to working channel (thus waiting for any in progress non interruptible work)
+		config.Working <- false
+		// Exit
+		fmt.Print(" Interrupt received... Quitting!")
+		os.Exit(0)
+	}()
+
 	// Switch our run strategy
 	switch config.GetStrategy() {
-	case configuration.StrategyDry:
-		startOnce()
-
-	case configuration.StrategyOnce:
+	case configuration.StrategyDry, configuration.StrategyOnce:
 		startOnce()
 
 	case configuration.StrategyHook:

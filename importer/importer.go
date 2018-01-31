@@ -67,6 +67,10 @@ func processOperations(matrix structs.OperationMatrix, client *http.Client) {
 
 	var transactions []structs.ConsulTxn
 
+	// Fill our channel to indicate a non interruptible work (It stops here if interruption in progress)
+	config.Working <- true
+
+	// Loop each operation
 	for _, op := range matrix.GetOperations() {
 		// We need to get the values to use pointers for our structure
 		// so we can clearly identify nil values, as in https://willnorris.com/2014/05/go-rest-apis-and-pointers
@@ -95,4 +99,7 @@ func processOperations(matrix structs.OperationMatrix, client *http.Client) {
 	if len(transactions) > 0 {
 		processConsulTransaction(transactions, client)
 	}
+
+	// Consume our channel, to re-allow application interruption
+	<- config.Working
 }
