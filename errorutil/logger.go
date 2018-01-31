@@ -21,12 +21,14 @@ var ErrorLevels = map[string]int{
 }
 
 type Logger struct {
-	level int
+	level 		int
+	messages 	[]string
 }
 
 func NewLogger(level int) *Logger {
 	return &Logger{
 		level: level,
+		messages: []string{},
 	}
 }
 
@@ -47,4 +49,12 @@ func (logger *Logger) PrintDebug(msg string) {
 	if logger.level >= ErrorLevels[LogDebug] {
 		fmt.Println("[" + LogDebug + "] [" + t.Format(time.StampMilli) + "] " + msg)
 	}
+}
+
+func (logger *Logger) AddMessage(msg string) {
+	logger.messages = append(logger.messages, msg)
+}
+
+func (logger *Logger) GetMessages() []string {
+	return logger.messages
 }

@@ -148,3 +148,15 @@ func printOperations(matrix structs.OperationMatrix, printWhat string) {
 		logger.PrintInfo("No operations to process, all synced")
 	}
 }
+
+func setDeletesToLogger(matrix structs.OperationMatrix) {
+	// Let's make sure there are any operation
+	if matrix.GetTotalOps() > 0 {
+		// Loop each operation and add to table
+		for _, op := range matrix.GetOperations() {
+			if op.GetType() == structs.OperationDelete {
+				logger.AddMessage(op.GetPath())
+			}
+		}
+	}
+}

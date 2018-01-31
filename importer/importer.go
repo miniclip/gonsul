@@ -60,8 +60,12 @@ func processOperations(matrix structs.OperationMatrix, client *http.Client) {
 		logger.PrintError("We're stopping as there are deletes and Gonsul is running without delete permission")
 		logger.PrintError("Below is all the Consul KV paths that should be deleted")
 
-		// Print matrix and exit
-		printOperations(matrix, structs.OperationDelete)
+		// Print matrix (or set in logger messages if in hook mode) and exit
+		if config.GetStrategy() == configuration.StrategyHook {
+			setDeletesToLogger(matrix)
+		} else {
+			printOperations(matrix, structs.OperationDelete)
+		}
 		errorutil.ExitError(errors.New(""), errorutil.ErrorDeleteNotAllowed, &logger)
 	}
 

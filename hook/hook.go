@@ -11,6 +11,8 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"gopkg.in/src-d/go-git.v4/utils/merkletrie/noder"
+	"strings"
 )
 
 var mutex *sync.Mutex
@@ -36,15 +38,16 @@ func Start(conf *configuration.Config, log *errorutil.Logger) {
 func hookHandler(response http.ResponseWriter, request *http.Request) {
 	// Defer our recover, so we can properly send an HTTP error
 	// response and carry on serving subsequent requests
-	defer func() {
+	defer func(logger errorutil.Logger) {
 		if r := recover(); r != nil {
 			var recoveredError = r.(errorutil.GonsulError)
-			response.WriteHeader(http.StatusInternalServerError)
+			response.WriteHeader(503)
 			response.Header().Add("X-Gonsul-Error", string(errorutil.ErrorDeleteNotAllowed))
-			// TODO: Add the to-be-deleted files as Header X-Gonsul-Deletes
+			// Add delete paths(they wre added to logger messages) as comma separated string to the Header
+			response.Header().Add("X-Gonsul-Delete-Paths", strings.Join(logger.GetMessages(), ","))
 			fmt.Fprintf(response, "Error: %d\n", recoveredError.Code)
 		}
-	}()
+	}(logger)
 
 	// Let's try to get a lock and defer the unlock
 	mutex.Lock()
