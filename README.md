@@ -68,7 +68,7 @@ Below is the full description for each individual command line flag
 
 
 ### `--strategy` 
-> `require:` **yes**
+> `require:` **yes**  
 > `example:` **`--strategy=ONCE`**
 
 This defines the mode that **Gonsul** should run at, having the following strategies:
@@ -81,7 +81,7 @@ This defines the mode that **Gonsul** should run at, having the following strate
 
 
 ### `--repo-url` 
-> `require:` **no**
+> `require:` **no**  
 > `example:` **`--repo-url=git@github.com:githubtraining/hellogitworld.git`**
 
 This flag will tell Gonsul where it should clone/checkout the repository from. This should be a fully qualified GIT url (either ssh, http or https). Please provide the full URL, with any ports, credentials or whatever you would normally use.
@@ -90,37 +90,37 @@ This flag will tell Gonsul where it should clone/checkout the repository from. T
 
 
 ### `--repo-ssh-key`
-> `require:` **no**
+> `require:` **no**  
 > `example:` **`--repo-ssh-key=/home/example_user/.ssh/id_rsa`**
 
 This is only required if the previous flag was given and it tells Gonsul where it can find the SSH key file to use in case we're connecting through SSH with a key.
 
 
 ### `--repo-ssh-user`
-> `require:` **no**
+> `require:` **no**  
 > `example:` **`--repo-ssh-user=git`**
 
 This is only required if the previous flag was given and it tell Gonsul what user we should use when connecting to an SSH GIT repository.
 
 
 ### `--repo-branch`
-> `require:` **no**
-> `default:` **master**
+> `require:` **no**  
+> `default:` **master**  
 > `example:` **`--repo-branch=my_branch_name`**
 
 This is the branch name that Gonsul should try to checkout.
 
 
 ### `--repo-remote-name` 
-> `require: `  **no**
-> `default: `  **origin**
+> `require: `  **no**  
+> `default: `  **origin**  
 > `example:` **`--repo-remote-name=upstream_name`**
 
 This is the name of the remote configured on the repository. We need it to properly trigger some PULL and CHECKOUT commands on the repository.
 
 
 ### `--repo-base-path` 
-> `require:` **no**
+> `require:` **no**  
 > `example:` **`--repo-base-path=configs/relative/path`**
 
 This is the relative folder, inside our repository, that Gonsul should consider and parse as values to be synced with your Consul cluster. If no value is given, Gonsul assume that the root repository is to be considered as Consul parseable.
@@ -129,14 +129,14 @@ This is the relative folder, inside our repository, that Gonsul should consider 
 
 
 ### `--repo-root` 
-> `require:` **yes**
+> `require:` **yes**  
 > `example:` **`--repo-root=/home/user/gonsul/repo_dir`**
 
 This is the absolute path where Gonsul should clone the repository in your OS filesystem. This is a required field, and when provided without providing the previous flag `--repo-url`, Gonsul will try to parse the given absolute path without using GIT. This could be useful if you want to use Gonsul as filesystem parser and Consul sync without doing any GIT operations.
 
 
 ### `--consul-url` 
-> `require:` **yes**
+> `require:` **yes**  
 > `example:` **`--consul-url=https://consul-cluster.example.com:8080`**
 
 This is the Consul's REST API endpoint that Gonsul will call to make the required inserts, updates and deletes on the Consul's KV store. Please provide the full URL, with scheme and port if appropriate.
@@ -145,14 +145,14 @@ This is the Consul's REST API endpoint that Gonsul will call to make the require
 
 
 ### `--consul-acl` 
-> `require:` **yes**
+> `require:` **yes**  
 > `example:` **`--consul-acl=youracltokenhere`**
 
 This is the Consul's access token that Gonsul will use when connecting to the cluster agent. This ACL **must** have read and write access to the same KV paths that are going to be replicated with the repository files.
 
 
 ### `--consul-base-path` 
-> `require:` **no**
+> `require:` **no**  
 > `example:` **`--consul-base-path=my/kv/base/path`**
 
 This is the prefix for all generated keys that Gonsul will look at. 
@@ -161,8 +161,8 @@ This is the prefix for all generated keys that Gonsul will look at.
 
 
 ### `--log-level` 
-> `require:` **no**
-> `default:` **ERROR**
+> `require:` **no**  
+> `default:` **ERROR**  
 > `example:` **`--log-level=DEBUG`**
 
 This defines the logging level that **Gonsul** should run, having the following levels:
@@ -172,8 +172,8 @@ This defines the logging level that **Gonsul** should run, having the following 
 
 
 ### `--expand-json` 
-> `require:` **no**
-> `default:` **false**
+> `require:` **no**  
+> `default:` **false**  
 > `example:` **`--expand-json=true`**
 
 This will tell Gonsul how to treat JSON files. If true, Gonsul will traverse the JSON files and append the path to the previous folder/file hierarchy and create single entries in Consul KV for each value.
@@ -185,7 +185,7 @@ This will tell Gonsul how to treat JSON files. If true, Gonsul will traverse the
 
 
 ### `--secrets-file`
-> `require:` **no**
+> `require:` **no**  
 > `example:` **`--secret-files=secrets.json`**
 
 This is the location for a secrets file. You can either pass a relative path and Gonsul will look for it into the `--repo-root` path or you can pass an absolute path. If this value is passed and the file is found and checked as valid, Gonsul will try to do an on-the-fly search and replace any placeholders for the corresponding values. This is done using [mustache](https://mustache.github.io/) template system.
@@ -204,8 +204,8 @@ This file must be a valid JSON map, where the keys are the placeholders and the 
 
 
 ### `--allow-deletes`
-> `require:` **no**
-> `default:` **false**
+> `require:` **no**  
+> `default:` **false**  
 > `example:` **`--allow-deletes=true`**
 
 This instructs Gonsul how it should proceed in case some Consul deletes are to be made. If the value for this flag is `true`, Gonsul will proceed with the delete operations, but if instead is `false`, Gonsul will not proceed with the deletes, and depending on the `--strategy` it is running at, it respondes with some different behaviors, such as:
@@ -219,8 +219,8 @@ This instructs Gonsul how it should proceed in case some Consul deletes are to b
 
 
 ### `--poll-interval`
-> `require:` **no**
-> `default:` **60**
+> `require:` **no**  
+> `default:` **60**  
 > `example:` **`--poll-interval=300`**
 
 This is the number of seconds you want Gonsul to wait between checks on the repository when it is running in `--strategy=POLL` mode.
