@@ -71,7 +71,7 @@ func createLiveData(client *http.Client) map[string]string {
 	var liveData map[string]string
 
 	// Create our URL
-	consulUrl := config.GetConsulURL() + "/v1/kv/" + config.GetConsulbasePath() + "?recurse=true"
+	consulUrl := config.GetConsulURL() + "/v1/kv/" + config.GetConsulbasePath() + "/?recurse=true"
 	// build our request
 	req, err := http.NewRequest("GET", consulUrl, nil)
 	if err != nil {
