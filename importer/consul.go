@@ -22,7 +22,6 @@ func processConsulTransaction(transactions []structs.ConsulTxn, client *http.Cli
 
 	// Create our URL
 	consulUrl := config.GetConsulURL() + "/v1/txn"
-	logger.PrintDebug("CONSUL: Importing a transactions")
 
 	// build our request
 	logger.PrintDebug("CONSUL: creating PUT request")
