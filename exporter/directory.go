@@ -21,7 +21,7 @@ func processDir(directory string, localData map[string]string) {
 		} else {
 			filePath := directory + "/" + file.Name()
 			ext := filepath.Ext(filePath)
-			if ext != ".json" && ext != ".txt" {
+			if ext != ".json" && ext != ".txt" && ext != ".ini" {
 				continue
 			}
 			content, err := ioutil.ReadFile(filePath) // just pass the file name
