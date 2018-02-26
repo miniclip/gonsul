@@ -294,3 +294,41 @@ monitor Gonsul logs to detect any found errors, and react appropriately. The err
 
 This is the number of seconds you want Gonsul to wait between checks on the repository when it is running in 
 `--strategy=POLL` mode.
+
+## Gonsul Exit Codes
+Whenever an error occurs, and Gonsul exits with a code other than 0, we try to return a meaningful code, such as:
+
+### 10
+This is the most important error code. It means **Delete** operations were found and Gonsul is running without
+delete permission. This error comes with the info about the Consul KV paths that would be deleted.
+
+### 20
+There was a problem on the initialization parameters /flags
+
+### 30
+This means there was an error connecting to Consul cluster. This can ben either ACL token, wrong endpoint, network, etc.
+
+### 31
+There was a problem running a Consul transaction. It basically means on operation of the transaction is corrupted for 
+some reason. Try a dryrun to analyze all the operations Gonsul is trying to run. 
+
+### 40
+This is a generic error when Gonsul fails to read an HTTP response.
+
+### 50
+This error is thrown when Gonsul could not encode a json payload for a transaction. Check **dryrun** for what operations
+Gonsul is trying to run.
+
+### 51
+This is when Gonsul could not decode a JSON payload. This can be either from a GET response from Consul, or more common
+when processing the filesystem and it found a corrupted JSON file - check your JSON files for errors.  
+
+
+### 60
+This occurs when Gonsul cannot clone the repository. Either because credentials are broken, or filesystem permissions.
+
+### 70
+This error occurs when secret replacement fails.
+
+### 80
+This is a generic HTTP error. Run Gonsul in debug mode to look for more information regarding the error. 
