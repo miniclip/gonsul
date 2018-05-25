@@ -35,5 +35,5 @@ func bootstrap() {
 	app.Start(config, logger)
 
 	// We're still here, all went well, good bye
-	logger.PrintInfo("Quitting... bye 😀")
+	logger.PrintInfo("Quitting... bye.")
 }

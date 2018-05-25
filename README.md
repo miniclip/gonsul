@@ -1,7 +1,9 @@
 # Gonsul - Git to Consul tool, in GO!
 This tool serves as an entry point for the Hashicorp's Consul KV store. Not only because Consul lacks of a built in 
 audit mechanism, but also because having configurations managed in GIT, using a gitflow or a normal 
-development-to-master flow is much friedly and familiar to any development team to manage configurations.
+development-to-master flow is much friendly and familiar to any development team to manage configurations.  
+
+Downloads in [releases page](https://github.com/miniclip/gonsul/releases).
 
 ## How It Processes a Repository
 Gonsul will (optionally) clone your repository into the filesystem. After, it will recursively parse all the files in 
