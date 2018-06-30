@@ -22,7 +22,7 @@ func main() {
 
 func bootstrap() {
 	// Build our configuration
-	config, err := configuration.GetConfig()
+	config, err := configuration.GetConfig(configuration.NewFlagsParser())
 	if err != nil {
 		var logger = errorutil.NewLogger(0)
 		errorutil.ExitError(err, errorutil.ErrorBadParams, logger)
