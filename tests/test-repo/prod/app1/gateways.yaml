@@ -1,0 +1,8 @@
+client1:
+  host: "http://asuperclient.com"
+  user: "thesuperuser"
+  pass: "thesuperpass"
+client2:
+  host: "http://asuperclient.com"
+  user: "thesuperuser"
+  pass: "thesuperpass"

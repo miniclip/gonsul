@@ -21,7 +21,7 @@ func processDir(directory string, localData map[string]string) {
 		} else {
 			filePath := directory + "/" + file.Name()
 			ext := filepath.Ext(filePath)
-			if ext != ".json" && ext != ".txt" && ext != ".ini" {
+			if !isExtensionValid(ext) {
 				continue
 			}
 			content, err := ioutil.ReadFile(filePath) // just pass the file name
@@ -31,6 +31,17 @@ func processDir(directory string, localData map[string]string) {
 			parseFile(filePath, string(content), localData)
 		}
 	}
+}
+
+// isExtensionValid checks if given file extensions is valid for processing
+func isExtensionValid(extension string) bool {
+	for _, validExtension := range config.GetValidExtensions() {
+		if strings.Trim(extension, ".") == strings.Trim(validExtension, ".") {
+			return true
+		}
+	}
+
+	return false
 }
 
 func parseFile(filePath string, value string, localData map[string]string) {

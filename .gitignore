@@ -1,1 +1,4 @@
 .idea
+vendor
+tests/mocks/*
+!tests/mocks/.gitkeep
