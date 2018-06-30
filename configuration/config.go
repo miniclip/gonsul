@@ -206,6 +206,10 @@ func (config *Config) GetPollInterval() int {
 	return config.pollInterval
 }
 
+func (config *Config) GetValidExtensions() []string {
+	return config.validExtensions
+}
+
 func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string, error) {
 	var file = secretsFile
 	if _, err := os.Stat(file); os.IsNotExist(err) {
