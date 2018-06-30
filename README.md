@@ -8,8 +8,9 @@ Downloads in [releases page](https://github.com/miniclip/gonsul/releases).
 ## How It Processes a Repository
 Gonsul will (optionally) clone your repository into the filesystem. After, it will recursively parse all the files in 
 the directory. Whenever Gonsul moves one level deep into a folder, the folder name is added as a Consul KV path part 
-and as soon as it finds a file (either `.json`, `.txt` or `.ini`) it will take the file name (without the extension) and 
-append to the Consul KV path, making it a key and the file content is added as the value.
+and as soon as it finds a file (either `.json`, `.txt` or `.ini` - or any other given in parameters) it will take the 
+file name (without the extension) and append to the Consul KV path, making it a key and the file content is added as the 
+value.
 
 **Example:** Take this repository folder structure:
 ```
@@ -90,6 +91,7 @@ Below are all available command line flags for starting **Gonsul**
 --secrets-file=
 --allow-deletes=
 --poll-interval=
+--input-ext=
 ```
 Below is the full description for each individual command line flag
 
@@ -297,40 +299,38 @@ monitor Gonsul logs to detect any found errors, and react appropriately. The err
 This is the number of seconds you want Gonsul to wait between checks on the repository when it is running in 
 `--strategy=POLL` mode.
 
+
+### `--input-ext`
+> `require:` **no**  
+> `default:` **json,txt,ini**  
+> `example:` **`--input-ext=json,txt,ini,yaml`**
+
+This is the file extensions that Gonsul should consider as inputs to populate our Consul. Please set each extension 
+without the dot, and separate each extension with a comma.
+
 ## Gonsul Exit Codes
 Whenever an error occurs, and Gonsul exits with a code other than 0, we try to return a meaningful code, such as:
 
-### 10
-This is the most important error code. It means **Delete** operations were found and Gonsul is running without
+* **10** - This is the most important error code. It means **Delete** operations were found and Gonsul is running without
 delete permission. This error comes with the info about the Consul KV paths that would be deleted.
 
-### 20
-There was a problem on the initialization parameters /flags
+* **20** - There was a problem on the initialization parameters /flags
 
-### 30
-This means there was an error connecting to Consul cluster. This can ben either ACL token, wrong endpoint, network, etc.
+* **30** - This means there was an error connecting to Consul cluster. This can ben either ACL token, wrong endpoint, network, etc.
 
-### 31
-There was a problem running a Consul transaction. It basically means on operation of the transaction is corrupted for 
+* **31** - There was a problem running a Consul transaction. It basically means on operation of the transaction is corrupted for 
 some reason. Try a dryrun to analyze all the operations Gonsul is trying to run. 
 
-### 40
-This is a generic error when Gonsul fails to read an HTTP response.
+* **40** - This is a generic error when Gonsul fails to read an HTTP response.
 
-### 50
-This error is thrown when Gonsul could not encode a json payload for a transaction. Check **dryrun** for what operations
+* **50** - This error is thrown when Gonsul could not encode a json payload for a transaction. Check **dryrun** for what operations
 Gonsul is trying to run.
 
-### 51
-This is when Gonsul could not decode a JSON payload. This can be either from a GET response from Consul, or more common
+* **51** - This is when Gonsul could not decode a JSON payload. This can be either from a GET response from Consul, or more common
 when processing the filesystem and it found a corrupted JSON file - check your JSON files for errors.  
 
+* **60** - This occurs when Gonsul cannot clone the repository. Either because credentials are broken, or filesystem permissions.
 
-### 60
-This occurs when Gonsul cannot clone the repository. Either because credentials are broken, or filesystem permissions.
+* **70** - This error occurs when secret replacement fails.
 
-### 70
-This error occurs when secret replacement fails.
-
-### 80
-This is a generic HTTP error. Run Gonsul in debug mode to look for more information regarding the error. 
+* **80** - This is a generic HTTP error. Run Gonsul in debug mode to look for more information regarding the error. 
