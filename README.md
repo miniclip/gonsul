@@ -200,7 +200,7 @@ Consul's KV store. Please provide the full URL, with scheme and port if appropri
 
 
 ### `--consul-acl` 
-> `require:` **yes**  
+> `require:` **no**  
 > `example:` **`--consul-acl=youracltokenhere`**
 
 This is the Consul's access token that Gonsul will use when connecting to the cluster agent. This ACL **must** have read 

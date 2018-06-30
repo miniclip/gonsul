@@ -71,7 +71,7 @@ func buildConfig(flags interfaces.ConfigFlags) (*Config, error) {
 	doSecrets := false
 
 	// Make sure we have the mandatory flags set
-	if *flags.ConsulURL == "" || *flags.ConsulACL == "" || *flags.ValidExtensions == "" {
+	if *flags.ConsulURL == "" || *flags.ValidExtensions == "" {
 		flag.PrintDefaults()
 		return nil, errors.New("required flags not set")
 	}
