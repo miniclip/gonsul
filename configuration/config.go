@@ -17,25 +17,6 @@ const StrategyOnce = "ONCE"
 const StrategyPoll = "POLL"
 const StrategyHook = "HOOK"
 
-var logLevel 			= flag.String("log-level", errorutil.LogErr, fmt.Sprintf("The desired log level (%s, %s, %s)", errorutil.LogErr, errorutil.LogInfo, errorutil.LogDebug))
-var strategyFlag 		= flag.String("strategy", StrategyOnce, fmt.Sprintf("The Gonsul operation mode (%s, %s, %s, %s)", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
-var repoURLFlag 		= flag.String("repo-url", "", "The repository URL (Full URL with scheme)")
-var repoSSHKeyFlag 		= flag.String("repo-ssh-key", "", "The SSH private key location (Full path)")
-var repoSSHUserFlag 	= flag.String("repo-ssh-user", "git", "The SSH user name")
-var repoBranchFlag 		= flag.String("repo-branch", "master", "Which branch should we look at")
-var repoRemoteNameFlag 	= flag.String("repo-remote-name", "origin", "The repository remote name")
-var repoBasePathFlag 	= flag.String("repo-base-path", "/", "The base directory to look from inside the repo")
-var repoRootDirFlag 	= flag.String("repo-root", "/tmp/gonsul/repo", "The path where the repo will be downloaded to")
-var consulURLFlag 		= flag.String("consul-url", "", "(REQUIRED) The Consul URL REST API endpoint (Full URL with scheme)")
-var consulACLFlag 		= flag.String("consul-acl", "", "(REQUIRED) The Consul ACL to use (Must have write on the KV following --consul-base path)")
-var consulBasePathFlag 	= flag.String("consul-base-path", "", "The base KV path will be prefixed to dir path - DO NOT START NOR END WITH SLASH")
-var expandJSONFlag 		= flag.Bool("expand-json", false, "Expand and parse JSON files as full paths?")
-var secretsFile 		= flag.String("secrets-file", "", "A key value json file with placeholders->secrets mapping, in order to do on the fly replace")
-var allowDeletesFlag 	= flag.Bool("allow-deletes", false, "Show Gonsul issue deletes? (If not, nothing will be done and a report on conflicting deletes will be shown)")
-var pollIntervalFlag 	= flag.Int("poll-interval", 60, "The number of seconds for the repository polling interval")
-var validExtensions 	= flag.String("input-ext", "json,txt,ini", "A comma separated list of file extensions valid as input")
-
-
 var config *Config
 
 type Config struct {
@@ -62,18 +43,22 @@ type Config struct {
 }
 
 func GetConfig() (*Config, error) {
-
+	// Set our local error var
 	var err error
-
+	// Singleton check
 	if config == nil {
-		config, err = buildConfig()
-		return config, err
+		// Initialise our flag parser and parse our flags
+		flagParser := configFlagsParser{}
+		fags := flagParser.Parse()
+		// Build our configuration
+		config, err = buildConfig(fags)
 	}
 
-	return config, nil
+	// Return the config and error (whichever state they are)
+	return config, err
 }
 
-func buildConfig() (*Config, error) {
+func buildConfig(flags configFlags) (*Config, error) {
 
 	// Set some local variable and some others defaulted
 	var secrets map[string]string
@@ -81,23 +66,20 @@ func buildConfig() (*Config, error) {
 	clone := true
 	doSecrets := false
 
-	// Parse our command line flags
-	flag.Parse()
-
 	// Make sure we have the mandatory flags set
-	if *consulURLFlag == "" || *consulACLFlag == "" || *validExtensions == "" {
+	if *flags.consulURL == "" || *flags.consulACL == "" || *flags.validExtensions == "" {
 		flag.PrintDefaults()
 		return nil, errors.New("required flags not set")
 	}
 
 	// Set our valid extensions
-	extensions, err := setValidExtensions(*validExtensions)
+	extensions, err := setValidExtensions(*flags.validExtensions)
 	if err != nil {
 		return nil, err
 	}
 
 	// Make sure strategy is properly given
-	strategy := strings.ToUpper(*strategyFlag)
+	strategy := strings.ToUpper(*flags.strategy)
 	if strategy != StrategyDry && strategy != StrategyOnce && strategy != StrategyPoll && strategy != StrategyHook {
 		return nil, errors.New(fmt.Sprintf("strategy invalid, must be one of: %s, %s, %s, %s", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
 	}
@@ -105,19 +87,19 @@ func buildConfig() (*Config, error) {
 	// Shall we use a local copy of the repository instead of cloning ourselves
 	// This should be useful if we use Gonsul on a CI stack (such as Bamboo)
 	// And the repo is checked out already, alleviating Gonsul work
-	if *repoURLFlag == "" && *repoRootDirFlag != "" {
+	if *flags.repoURL == "" && *flags.repoRootDir != "" {
 		clone = false
 	}
 
 	// Make sure log level is properly set
-	errorLevel := errorutil.ErrorLevels[strings.ToUpper(*logLevel)]
+	errorLevel := errorutil.ErrorLevels[strings.ToUpper(*flags.logLevel)]
 	if errorLevel < errorutil.LogLevelErr {
 		return nil, errors.New(fmt.Sprintf("log level invalid, must be one of: %s, %s, %s", errorutil.LogErr, errorutil.LogInfo, errorutil.LogDebug))
 	}
 
 	// Should we build a secrets map for on-the-fly mustache replacement
-	if *secretsFile != "" {
-		secrets, err = buildSecretsMap(*secretsFile, *repoRootDirFlag)
+	if *flags.secretsFile != "" {
+		secrets, err = buildSecretsMap(*flags.secretsFile, *flags.repoRootDir)
 		if err != nil {
 			return nil, err
 		}
@@ -128,21 +110,21 @@ func buildConfig() (*Config, error) {
 		shouldClone:    	clone,
 		logLevel:       	errorLevel,
 		strategy:       	strategy,
-		repoUrl:        	*repoURLFlag,
-		repoSSHKey:     	*repoSSHKeyFlag,
-		repoSSHUser:    	*repoSSHUserFlag,
-		repoBranch:     	*repoBranchFlag,
-		repoRemoteName: 	*repoRemoteNameFlag,
-		repoBasePath:   	*repoBasePathFlag,
-		repoRootDir:    	*repoRootDirFlag,
-		consulURL:      	*consulURLFlag,
-		consulACL:      	*consulACLFlag,
-		consulBasePath: 	*consulBasePathFlag,
-		expandJSON:     	*expandJSONFlag,
+		repoUrl:        	*flags.repoURL,
+		repoSSHKey:     	*flags.repoSSHKey,
+		repoSSHUser:    	*flags.repoSSHUser,
+		repoBranch:     	*flags.repoBranch,
+		repoRemoteName: 	*flags.repoRemoteName,
+		repoBasePath:   	*flags.repoBasePath,
+		repoRootDir:    	*flags.repoRootDir,
+		consulURL:      	*flags.consulURL,
+		consulACL:      	*flags.consulACL,
+		consulBasePath: 	*flags.consulBasePath,
+		expandJSON:     	*flags.expandJSON,
 		doSecrets:      	doSecrets,
 		secretsMap:     	secrets,
-		allowDeletes:   	*allowDeletesFlag,
-		pollInterval:   	*pollIntervalFlag,
+		allowDeletes:   	*flags.allowDeletes,
+		pollInterval:   	*flags.pollInterval,
 		Working: 			make(chan bool, 1),
 		validExtensions: 	extensions,
 	}, nil
