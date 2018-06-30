@@ -38,6 +38,10 @@
   name = "github.com/olekukonko/tablewriter"
 
 [[constraint]]
+  name = "github.com/onsi/gomega"
+  version = "1.4.0"
+
+[[constraint]]
   name = "gopkg.in/src-d/go-git.v4"
   version = "4.4.1"
 
