@@ -36,7 +36,7 @@ func processDir(directory string, localData map[string]string) {
 // isExtensionValid checks if given file extensions is valid for processing
 func isExtensionValid(extension string) bool {
 	for _, validExtension := range config.GetValidExtensions() {
-		if extension == validExtension {
+		if strings.Trim(extension, ".") == strings.Trim(validExtension, ".") {
 			return true
 		}
 	}
