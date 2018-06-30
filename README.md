@@ -1,4 +1,4 @@
-# Gonsul - Git to Consul tool, in GO!
+# Gonsul - A Git to Consul tool, in Go!
 This tool serves as an entry point for the Hashicorp's Consul KV store. Not only because Consul lacks of a built in 
 audit mechanism, but also because having configurations managed in GIT, using a gitflow or a normal 
 development-to-master flow is much friendly and familiar to any development team to manage configurations.  
@@ -267,7 +267,7 @@ This file must be a valid JSON map, where the keys are the placeholders and the 
 }
 ```
 **Note 1:** All the replacement is done on-the-fly in memory, and apart from the original supplied `secrets.json` file, 
-no secrets are written to disk.
+no secrets are written to disk.  
 **Note 2:** The placeholders **should** follow the *mustache* triple curly braces `{{{FOO_DB_USER}}}`, that means 
 *"unescaped HTML charcaters"* - basically takes the value as is.
 
