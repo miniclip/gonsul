@@ -33,6 +33,8 @@ var expandJSONFlag 		= flag.Bool("expand-json", false, "Expand and parse JSON fi
 var secretsFile 		= flag.String("secrets-file", "", "A key value json file with placeholders->secrets mapping, in order to do on the fly replace")
 var allowDeletesFlag 	= flag.Bool("allow-deletes", false, "Show Gonsul issue deletes? (If not, nothing will be done and a report on conflicting deletes will be shown)")
 var pollIntervalFlag 	= flag.Int("poll-interval", 60, "The number of seconds for the repository polling interval")
+var validExtensions 	= flag.String("input-ext", "json,txt,ini", "A comma separated list of file extensions valid as input")
+
 
 var config *Config
 
@@ -56,6 +58,7 @@ type Config struct {
 	allowDeletes   	bool
 	pollInterval   	int
 	Working			chan bool
+	validExtensions	[]string
 }
 
 func GetConfig() (*Config, error) {
@@ -82,9 +85,15 @@ func buildConfig() (*Config, error) {
 	flag.Parse()
 
 	// Make sure we have the mandatory flags set
-	if *consulURLFlag == "" || *consulACLFlag == "" {
+	if *consulURLFlag == "" || *consulACLFlag == "" || *validExtensions == "" {
 		flag.PrintDefaults()
 		return nil, errors.New("required flags not set")
+	}
+
+	// Set our valid extensions
+	extensions, err := setValidExtensions(*validExtensions)
+	if err != nil {
+		return nil, err
 	}
 
 	// Make sure strategy is properly given
@@ -116,25 +125,26 @@ func buildConfig() (*Config, error) {
 	}
 
 	return &Config{
-		shouldClone:    clone,
-		logLevel:       errorLevel,
-		strategy:       strategy,
-		repoUrl:        *repoURLFlag,
-		repoSSHKey:     *repoSSHKeyFlag,
-		repoSSHUser:    *repoSSHUserFlag,
-		repoBranch:     *repoBranchFlag,
-		repoRemoteName: *repoRemoteNameFlag,
-		repoBasePath:   *repoBasePathFlag,
-		repoRootDir:    *repoRootDirFlag,
-		consulURL:      *consulURLFlag,
-		consulACL:      *consulACLFlag,
-		consulBasePath: *consulBasePathFlag,
-		expandJSON:     *expandJSONFlag,
-		doSecrets:      doSecrets,
-		secretsMap:     secrets,
-		allowDeletes:   *allowDeletesFlag,
-		pollInterval:   *pollIntervalFlag,
-		Working: 		make(chan bool, 1),
+		shouldClone:    	clone,
+		logLevel:       	errorLevel,
+		strategy:       	strategy,
+		repoUrl:        	*repoURLFlag,
+		repoSSHKey:     	*repoSSHKeyFlag,
+		repoSSHUser:    	*repoSSHUserFlag,
+		repoBranch:     	*repoBranchFlag,
+		repoRemoteName: 	*repoRemoteNameFlag,
+		repoBasePath:   	*repoBasePathFlag,
+		repoRootDir:    	*repoRootDirFlag,
+		consulURL:      	*consulURLFlag,
+		consulACL:      	*consulACLFlag,
+		consulBasePath: 	*consulBasePathFlag,
+		expandJSON:     	*expandJSONFlag,
+		doSecrets:      	doSecrets,
+		secretsMap:     	secrets,
+		allowDeletes:   	*allowDeletesFlag,
+		pollInterval:   	*pollIntervalFlag,
+		Working: 			make(chan bool, 1),
+		validExtensions: 	extensions,
 	}, nil
 }
 
@@ -236,4 +246,20 @@ func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string
 	}
 
 	return secretsMap, nil
+}
+
+func setValidExtensions(validExtensions string) ([]string, error) {
+	var extensionsArr []string
+
+	// Try to explode the string
+	extensions := strings.Split(validExtensions, ",")
+	if len(extensions) < 1 {
+		return nil, errors.New(fmt.Sprintf("could not open get valid extensions from flag (%s). Value given: %s", "--input-ext", validExtensions))
+	}
+
+	for _, extension := range extensions {
+		extensionsArr = append(extensionsArr, extension)
+	}
+
+	return extensionsArr, nil
 }
