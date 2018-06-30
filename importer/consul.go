@@ -31,7 +31,9 @@ func processConsulTransaction(transactions []structs.ConsulTxn, client *http.Cli
 	}
 
 	// Set ACL token
-	req.Header.Set("X-Consul-Token", config.GetConsulACL())
+	if config.GetConsulACL() != "" {
+		req.Header.Set("X-Consul-Token", config.GetConsulACL())
+	}
 
 	// Send the request via a client
 	// Do sends an HTTP request and

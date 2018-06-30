@@ -78,8 +78,10 @@ func createLiveData(client *http.Client) map[string]string {
 		errorutil.ExitError(errors.New("NewRequestGET: "+err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
 	}
 
-	// Set ACL token
-	req.Header.Set("X-Consul-Token", config.GetConsulACL())
+	// Set ACL token (if given)
+	if config.GetConsulACL() != "" {
+		req.Header.Set("X-Consul-Token", config.GetConsulACL())
+	}
 
 	// Send the request via a client, Do sends an HTTP request and returns an HTTP response
 	resp, err := client.Do(req)
