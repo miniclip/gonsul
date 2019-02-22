@@ -95,8 +95,10 @@ func createLiveData(client *http.Client) map[string]string {
 	// Invalid response, path is empty then, fresh import
 	if resp.StatusCode == 404 {
 		return nil
-	} else if resp.StatusCode >= 400 {
-		errorutil.ExitError(errors.New("GetStatus: "+resp.Status), errorutil.ErrorFailedConsulConnection, &logger)
+	}
+
+	if resp.StatusCode >= 400 {
+		errorutil.ExitError(errors.New("Invalid response from consul: "+resp.Status), errorutil.ErrorFailedConsulConnection, &logger)
   }
 
 	// Read response from HTTP Response
