@@ -97,6 +97,10 @@ func createLiveData(client *http.Client) map[string]string {
 		return nil
 	}
 
+	if resp.StatusCode >= 400 {
+		errorutil.ExitError(errors.New("Invalid response from consul: "+resp.Status), errorutil.ErrorFailedConsulConnection, &logger)
+  }
+
 	// Read response from HTTP Response
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
