@@ -41,6 +41,7 @@ type Config struct {
 	pollInterval   	int
 	Working			chan bool
 	validExtensions	[]string
+	timeout   			int
 }
 
 func GetConfig(flagParser interfaces.IConfigFlags) (*Config, error) {
@@ -131,6 +132,7 @@ func buildConfig(flags interfaces.ConfigFlags) (*Config, error) {
 		pollInterval:   	*flags.PollInterval,
 		Working: 			make(chan bool, 1),
 		validExtensions: 	extensions,
+		timeout:   				*flags.Timeout,
 	}, nil
 }
 
@@ -208,6 +210,10 @@ func (config *Config) GetPollInterval() int {
 
 func (config *Config) GetValidExtensions() []string {
 	return config.validExtensions
+}
+
+func (config *Config) GetTimeout() int {
+	return config.timeout
 }
 
 func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string, error) {

@@ -31,6 +31,7 @@ func (flags *ConfigFlagsParser) Parse() interfaces.ConfigFlags {
 	flags.Flags.AllowDeletes = flag.Bool("allow-deletes", false, "Show Gonsul issue deletes? (If not, nothing will be done and a report on conflicting deletes will be shown) (Default false)")
 	flags.Flags.PollInterval = flag.Int("poll-interval", 60, "The number of seconds for the repository polling interval")
 	flags.Flags.ValidExtensions = flag.String("input-ext", "json,txt,ini", "A comma separated list of file extensions valid as input")
+	flags.Flags.Timeout = flag.Int("timeout", 5, "The number of seconds for the client to wait for a response from Consul")
 
 	// Parse our command line flags
 	flag.Parse()

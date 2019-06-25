@@ -18,6 +18,7 @@ type ConfigFlags struct {
 	AllowDeletes    *bool
 	PollInterval    *int
 	ValidExtensions *string
+	Timeout         *int
 }
 
 type IConfigFlags interface {

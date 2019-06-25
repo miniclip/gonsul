@@ -111,6 +111,7 @@ func getConfigFlagsFor(
 		AllowDeletes: &ad,
 		PollInterval: &pi,
 		ValidExtensions: &ie,
+		Timeout:         &ti,
 	}
 
 	return configFlags

@@ -308,6 +308,15 @@ This is the number of seconds you want Gonsul to wait between checks on the repo
 This is the file extensions that Gonsul should consider as inputs to populate our Consul. Please set each extension 
 without the dot, and separate each extension with a comma.
 
+
+### `--timeout`
+> `require:` **no**  
+> `default:` **5**  
+> `example:` **`--timeout=20`**
+
+The number of seconds for the client to wait for a response from Consul
+
+
 ## Gonsul Exit Codes
 Whenever an error occurs, and Gonsul exits with a code other than 0, we try to return a meaningful code, such as:
 
