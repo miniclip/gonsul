@@ -312,7 +312,7 @@ without the dot, and separate each extension with a comma.
 ### `--timeout`
 > `require:` **no**  
 > `default:` **5**  
-> `example:` **`--poll-interval=20`**
+> `example:` **`--timeout=20`**
 
 The number of seconds for the client to wait for a response from Consul
 
