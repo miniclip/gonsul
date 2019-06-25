@@ -1,13 +1,13 @@
 package configuration
 
 import (
-	"testing"
 	. "github.com/onsi/gomega"
+	"testing"
 
-	"github.com/miniclip/gonsul/tests/mocks"
+	"fmt"
 	"github.com/miniclip/gonsul/errorutil"
 	"github.com/miniclip/gonsul/interfaces"
-	"fmt"
+	"github.com/miniclip/gonsul/tests/mocks"
 )
 
 func TestGetConfigSuccess(t *testing.T) {
@@ -34,6 +34,7 @@ func TestGetConfigSuccess(t *testing.T) {
 		false,
 		60,
 		"json,txt,ini",
+		10,
 	)
 
 	// Setup expectations
@@ -71,19 +72,17 @@ func TestGetConfigMultipleFail(t *testing.T) {
 	}
 }
 
-
 func getMultipleWrongConfigs() []interfaces.ConfigFlags {
 	return []interfaces.ConfigFlags{
-		getConfigFlagsFor("WRONG_LOG_LEVEL", StrategyOnce, "", "", "", "", "", "/", "./..", "http://consul.com", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-success.json", false, 60, "json,txt,ini"),
-		getConfigFlagsFor(errorutil.LogDebug, "WRONG_STRATEGY", "", "", "", "", "", "/", "./..", "http://consul.com", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-success.json", false, 60, "json,txt,ini"),
-		getConfigFlagsFor(errorutil.LogDebug, StrategyOnce, "", "", "", "", "", "/", "./..", "", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-success.json", false, 60, "json,txt,ini"),
-		getConfigFlagsFor(errorutil.LogDebug, StrategyOnce, "", "", "", "", "", "/", "./..", "http://consul.com", "", "", false, "tests/test-secrets-file-success.json", false, 60, "json,txt,ini"),
-		getConfigFlagsFor(errorutil.LogDebug, StrategyOnce, "", "", "", "", "", "/", "./..", "http://consul.com", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-success.json", false, 60, ""),
-		getConfigFlagsFor(errorutil.LogDebug, StrategyOnce, "", "", "", "", "", "/", "./..", "http://consul.com", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-fail.json", false, 60, "json,txt,ini"),
-		getConfigFlagsFor(errorutil.LogDebug, StrategyOnce, "", "", "", "", "", "/", "./..", "http://consul.com", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-non-existent.json", false, 60, "json,txt,ini"),
+		getConfigFlagsFor("WRONG_LOG_LEVEL", StrategyOnce, "", "", "", "", "", "/", "./..", "http://consul.com", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-success.json", false, 60, "json,txt,ini", 10),
+		getConfigFlagsFor(errorutil.LogDebug, "WRONG_STRATEGY", "", "", "", "", "", "/", "./..", "http://consul.com", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-success.json", false, 60, "json,txt,ini", 10),
+		getConfigFlagsFor(errorutil.LogDebug, StrategyOnce, "", "", "", "", "", "/", "./..", "", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-success.json", false, 60, "json,txt,ini", 10),
+		getConfigFlagsFor(errorutil.LogDebug, StrategyOnce, "", "", "", "", "", "/", "./..", "http://consul.com", "", "", false, "tests/test-secrets-file-success.json", false, 60, "json,txt,ini", 10),
+		getConfigFlagsFor(errorutil.LogDebug, StrategyOnce, "", "", "", "", "", "/", "./..", "http://consul.com", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-success.json", false, 60, "", 10),
+		getConfigFlagsFor(errorutil.LogDebug, StrategyOnce, "", "", "", "", "", "/", "./..", "http://consul.com", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-fail.json", false, 60, "json,txt,ini", 10),
+		getConfigFlagsFor(errorutil.LogDebug, StrategyOnce, "", "", "", "", "", "/", "./..", "http://consul.com", "some-acl-1234567890-qwerty", "", false, "tests/test-secrets-file-non-existent.json", false, 60, "json,txt,ini", 10),
 	}
 }
-
 
 func getConfigFlagsFor(
 	ll, s, ru, rsk, rsu, rb, rrn, rbp, rr, cu, ca, cbp string,
@@ -92,25 +91,27 @@ func getConfigFlagsFor(
 	ad bool,
 	pi int,
 	ie string,
+	ti int,
 ) interfaces.ConfigFlags {
 	configFlags := interfaces.ConfigFlags{
-		LogLevel: &ll,
-		Strategy: &s,
-		RepoURL: &ru,
-		RepoSSHKey: &rsk,
-		RepoSSHUser: &rsu,
-		RepoBranch: &rb,
-		RepoRemoteName: &rrn,
-		RepoBasePath: &rbp,
-		RepoRootDir: &rr,
-		ConsulURL: &cu,
-		ConsulACL: &ca,
-		ConsulBasePath: &cbp,
-		ExpandJSON: &ej,
-		SecretsFile: &sf,
-		AllowDeletes: &ad,
-		PollInterval: &pi,
+		LogLevel:        &ll,
+		Strategy:        &s,
+		RepoURL:         &ru,
+		RepoSSHKey:      &rsk,
+		RepoSSHUser:     &rsu,
+		RepoBranch:      &rb,
+		RepoRemoteName:  &rrn,
+		RepoBasePath:    &rbp,
+		RepoRootDir:     &rr,
+		ConsulURL:       &cu,
+		ConsulACL:       &ca,
+		ConsulBasePath:  &cbp,
+		ExpandJSON:      &ej,
+		SecretsFile:     &sf,
+		AllowDeletes:    &ad,
+		PollInterval:    &pi,
 		ValidExtensions: &ie,
+		Timeout:         &ti,
 	}
 
 	return configFlags

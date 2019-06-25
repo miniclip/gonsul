@@ -29,7 +29,7 @@ func Start(localData map[string]string, conf *configuration.Config, log *errorut
 	// create a Client
 	// A Client is an HTTP client
 	client := &http.Client{
-		Timeout: time.Second * 5,
+		Timeout: time.Second * time.Duration(conf.GetTimeout()),
 	}
 
 	// Populate our Consul live data

@@ -7,10 +7,10 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/miniclip/gonsul/interfaces"
 	"io/ioutil"
 	"os"
 	"strings"
-	"github.com/miniclip/gonsul/interfaces"
 )
 
 const StrategyDry = "DRYRUN"
@@ -21,26 +21,27 @@ const StrategyHook = "HOOK"
 var config *Config
 
 type Config struct {
-	shouldClone    	bool
-	logLevel       	int
-	strategy       	string
-	repoUrl        	string
-	repoSSHKey     	string
-	repoSSHUser    	string
-	repoBranch     	string
-	repoRemoteName 	string
-	repoBasePath   	string
-	repoRootDir    	string
-	consulURL      	string
-	consulACL      	string
-	consulBasePath 	string
-	expandJSON     	bool
-	doSecrets      	bool
-	secretsMap     	map[string]string
-	allowDeletes   	bool
-	pollInterval   	int
-	Working			chan bool
-	validExtensions	[]string
+	shouldClone     bool
+	logLevel        int
+	strategy        string
+	repoUrl         string
+	repoSSHKey      string
+	repoSSHUser     string
+	repoBranch      string
+	repoRemoteName  string
+	repoBasePath    string
+	repoRootDir     string
+	consulURL       string
+	consulACL       string
+	consulBasePath  string
+	expandJSON      bool
+	doSecrets       bool
+	secretsMap      map[string]string
+	allowDeletes    bool
+	pollInterval    int
+	Working         chan bool
+	validExtensions []string
+	timeout         int
 }
 
 func GetConfig(flagParser interfaces.IConfigFlags) (*Config, error) {
@@ -111,26 +112,27 @@ func buildConfig(flags interfaces.ConfigFlags) (*Config, error) {
 	}
 
 	return &Config{
-		shouldClone:    	clone,
-		logLevel:       	errorLevel,
-		strategy:       	strategy,
-		repoUrl:        	*flags.RepoURL,
-		repoSSHKey:     	*flags.RepoSSHKey,
-		repoSSHUser:    	*flags.RepoSSHUser,
-		repoBranch:     	*flags.RepoBranch,
-		repoRemoteName: 	*flags.RepoRemoteName,
-		repoBasePath:   	*flags.RepoBasePath,
-		repoRootDir:    	*flags.RepoRootDir,
-		consulURL:      	*flags.ConsulURL,
-		consulACL:      	*flags.ConsulACL,
-		consulBasePath: 	*flags.ConsulBasePath,
-		expandJSON:     	*flags.ExpandJSON,
-		doSecrets:      	doSecrets,
-		secretsMap:     	secrets,
-		allowDeletes:   	*flags.AllowDeletes,
-		pollInterval:   	*flags.PollInterval,
-		Working: 			make(chan bool, 1),
-		validExtensions: 	extensions,
+		shouldClone:     clone,
+		logLevel:        errorLevel,
+		strategy:        strategy,
+		repoUrl:         *flags.RepoURL,
+		repoSSHKey:      *flags.RepoSSHKey,
+		repoSSHUser:     *flags.RepoSSHUser,
+		repoBranch:      *flags.RepoBranch,
+		repoRemoteName:  *flags.RepoRemoteName,
+		repoBasePath:    *flags.RepoBasePath,
+		repoRootDir:     *flags.RepoRootDir,
+		consulURL:       *flags.ConsulURL,
+		consulACL:       *flags.ConsulACL,
+		consulBasePath:  *flags.ConsulBasePath,
+		expandJSON:      *flags.ExpandJSON,
+		doSecrets:       doSecrets,
+		secretsMap:      secrets,
+		allowDeletes:    *flags.AllowDeletes,
+		pollInterval:    *flags.PollInterval,
+		Working:         make(chan bool, 1),
+		validExtensions: extensions,
+		timeout:         *flags.Timeout,
 	}, nil
 }
 
@@ -208,6 +210,10 @@ func (config *Config) GetPollInterval() int {
 
 func (config *Config) GetValidExtensions() []string {
 	return config.validExtensions
+}
+
+func (config *Config) GetTimeout() int {
+	return config.timeout
 }
 
 func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string, error) {
