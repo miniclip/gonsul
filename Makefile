@@ -4,18 +4,19 @@ SRC=$(shell find . -type f -name '*.go' -not -path "./vendor/*")
 
 # Application main and final binary locations
 APP=cmd/gonsul.go
-APP_BINARY=bin/api
+APP_BINARY=bin/gonsul
 
 # These are the values we want to pass for VERSION
-VERSION=$(shell git describe --abbrev=6 --always --tags)$(shell date -u +.%Y%m%d.%H%M%S)
+VERSION=$(shell git describe --abbrev=6 --always --tags)
+BUILD_DATE=$(shell date -u +%Y%m%d.%H%M%S)
 
 # Setup the -ldflags option for go build here, interpolate the variable values
-LDFLAGS_APP=-ldflags "-X github.com/miniclip/main.AppVersion=${VERSION}"
+LDFLAGS_APP=-ldflags "-X github.com/miniclip/gonsul/app.Version=${VERSION} -X github.com/miniclip/gonsul/app.BuildDate=${BUILD_DATE}"
 
 # Builds the project
 build: install-app build-app
 
-# Builds the SRV
+# Builds the application
 build-app:
 	@echo "=== Building SRV ==="
 	go build ${LDFLAGS_APP} -a -installsuffix cgo -o ${APP_BINARY} ${APP}

@@ -39,6 +39,7 @@ type config struct {
 	Working         chan bool
 	validExtensions []string
 	timeout         int
+	version         bool
 }
 
 // IConfig is our config interface, implemented by our config struct above. It allows
@@ -65,6 +66,7 @@ type IConfig interface {
 	WorkingChan() chan bool
 	GetValidExtensions() []string
 	GetTimeout() int
+	IsShowVersion() bool
 }
 
 // NewConfig is our config struct constructor.
@@ -81,6 +83,13 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 	var err error
 	var clone = true
 	var doSecrets = false
+
+	// If we were passed a -v (version) flag, nothing else matters
+	if *flags.Version {
+		return &config{
+			version: true,
+		}, nil
+	}
 
 	// Make sure we have the mandatory flags set
 	if *flags.ConsulURL == "" || *flags.ValidExtensions == "" {
@@ -144,6 +153,7 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 		Working:         make(chan bool, 1),
 		validExtensions: extensions,
 		timeout:         *flags.Timeout,
+		version:         *flags.Version,
 	}, nil
 }
 
@@ -229,6 +239,10 @@ func (config *config) GetValidExtensions() []string {
 
 func (config *config) GetTimeout() int {
 	return config.timeout
+}
+
+func (config *config) IsShowVersion() bool {
+	return config.version
 }
 
 func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string, error) {

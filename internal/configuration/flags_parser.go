@@ -25,6 +25,7 @@ type ConfigFlags struct {
 	PollInterval    *int
 	ValidExtensions *string
 	Timeout         *int
+	Version         *bool
 }
 
 func parseFlags() ConfigFlags {
@@ -48,6 +49,7 @@ func parseFlags() ConfigFlags {
 	flags.PollInterval = flag.Int("poll-interval", 60, "The number of seconds for the repository polling interval")
 	flags.ValidExtensions = flag.String("input-ext", "json,txt,ini", "A comma separated list of file extensions valid as input")
 	flags.Timeout = flag.Int("timeout", 5, "The number of seconds for the client to wait for a response from Consul")
+	flags.Version = flag.Bool("v", false, "Will show the Gonsul version")
 
 	// Parse our command line flags
 	flag.Parse()

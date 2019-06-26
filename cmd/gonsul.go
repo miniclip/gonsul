@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/miniclip/gonsul/app"
 	"github.com/miniclip/gonsul/internal/configuration"
 	"github.com/miniclip/gonsul/internal/exporter"
@@ -10,8 +11,6 @@ import (
 	"os"
 	"time"
 )
-
-var AppVersion = ""
 
 func main() {
 	defer func() {
@@ -33,6 +32,13 @@ func start() {
 
 	// Build our logger
 	logger := util.NewLogger(config.GetLogLevel())
+
+	// Are we just printing the app version
+	if config.IsShowVersion() {
+		fmt.Println("Gonsul version: " + app.Version)
+		fmt.Println("Build date: " + app.BuildDate)
+		return
+	}
 
 	// Build our application and all it's dependencies
 	httpClient := &http.Client{Timeout: time.Second * time.Duration(config.GetTimeout())}
