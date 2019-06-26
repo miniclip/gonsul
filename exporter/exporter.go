@@ -2,32 +2,42 @@ package exporter
 
 import (
 	"github.com/miniclip/gonsul/configuration"
-	"github.com/miniclip/gonsul/errorutil"
+	"github.com/miniclip/gonsul/util"
 )
 
-var config configuration.Config
-var logger errorutil.Logger
+// IExporter ...
+type IExporter interface {
+	Start() map[string]string
+}
 
-func Start(conf *configuration.Config, log *errorutil.Logger) map[string]string {
-	// Set the appropriate values for our package global variables
-	config = *conf
-	logger = *log
+// exporter ...
+type exporter struct {
+	config configuration.IConfig
+	logger util.ILogger
+}
 
+// NewExporter ...
+func NewExporter(config configuration.IConfig, logger util.ILogger) IExporter {
+	return &exporter{config: config, logger: logger}
+}
+
+// Start ...
+func (e *exporter) Start() map[string]string {
 	// Instantiate our local data map
 	var localData = map[string]string{}
 
-	// Set the path where Gonsul should start traversing files to add to Consul
-	repoDir := config.GetRepoRootDir() + "/" + config.GetRepoBasePath()
-
 	// Should we clone the repo, or is it already done via 3rd party
-	if config.IsCloning() {
-		logger.PrintInfo("REPO: GIT cloning from: " + config.GetRepoURL())
-		downloadRepo(config.GetRepoRootDir(), config.GetRepoURL())
+	if e.config.IsCloning() {
+		e.logger.PrintInfo("REPO: GIT cloning from: " + e.config.GetRepoURL())
+		e.downloadRepo()
 	} else {
-		logger.PrintInfo("REPO: Skipping GIT clone, using local path: " + config.GetRepoRootDir())
+		e.logger.PrintInfo("REPO: Skipping GIT clone, using local path: " + e.config.GetRepoRootDir())
 	}
+
+	// Set the path where Gonsul should start traversing files to add to Consul
+	repoDir := e.config.GetRepoRootDir() + "/" + e.config.GetRepoBasePath()
 	// Traverse our repo directory, filling up the data.EntryCollection structure
-	processDir(repoDir, localData)
+	e.parseDir(repoDir, localData)
 
 	// Return our final data.EntryCollection structure
 	return localData

@@ -1,7 +1,7 @@
 package exporter
 
 import (
-	"github.com/miniclip/gonsul/errorutil"
+	"github.com/miniclip/gonsul/util"
 
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
@@ -11,16 +11,23 @@ import (
 	"fmt"
 )
 
-func downloadRepo(fileSystemPath string, url string) {
-	// Check if SSH Key path was given
-	var auth ssh.AuthMethod
-	var sshUser = config.GetRepoSSHUser()
-	var sshKey = config.GetRepoSSHKey()
+// downloadRepo ...
+func (e *exporter) downloadRepo() {
+	// Get some variables
+	var (
+		fileSystemPath = e.config.GetRepoRootDir()
+		url            = e.config.GetRepoURL()
+		sshUser        = e.config.GetRepoSSHUser()
+		sshKey         = e.config.GetRepoSSHKey()
+		auth           ssh.AuthMethod
+	)
 
+	// Check if SSH Key path was given
 	if sshUser != "" && sshKey != "" {
 		auth, _ = ssh.NewPublicKeysFromFile(sshUser, sshKey, "")
 	}
 
+	// Clone given repository
 	repo, err := git.PlainClone(fileSystemPath, false, &git.CloneOptions{
 		URL:               url,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth,
@@ -28,69 +35,75 @@ func downloadRepo(fileSystemPath string, url string) {
 	})
 
 	if err != nil {
-		logger.PrintDebug(fmt.Sprintf("REPO: failed clone (%s), trying to open directory", err.Error()))
+		e.logger.PrintDebug(fmt.Sprintf("REPO: failed clone (%s), trying to open directory", err.Error()))
 
 		// Cloning failed, most probably due to directory already cloned, moving to Open Dir
-		repo, err = git.PlainOpen(config.GetRepoRootDir())
+		repo, err = git.PlainOpen(e.config.GetRepoRootDir())
 
 		if err != nil {
-			errorutil.ExitError(
+			util.ExitError(
 				errors.New("REPO: failed clone and directory is not a git repo, try cleaning dir"),
-				errorutil.ErrorFailedCloning,
-				&logger,
+				util.ErrorFailedCloning,
+				e.logger,
 			)
 		}
 
-		logger.PrintDebug(fmt.Sprintf("REPO: git directory openned: %s", config.GetRepoRootDir()))
+		e.logger.PrintDebug(fmt.Sprintf("REPO: git directory openned: %s", e.config.GetRepoRootDir()))
 	}
 
 	// We're still here, let's try to checkout required branch
-	tryCheckout(repo, &auth)
+	e.tryCheckout(repo, &auth)
 }
 
-func tryCheckout(repo *git.Repository, auth *ssh.AuthMethod) {
+// tryCheckout ...
+func (e *exporter) tryCheckout(repo *git.Repository, auth *ssh.AuthMethod) {
 	// Initiate our worktree
 	workTree, err := repo.Worktree()
-	checkRepoError(err)
+	e.checkRepoError(err)
 
 	// Get remotes, to check if current GIT is ours
 	remotes, err := repo.Remotes()
-	checkRepoError(err)
+	e.checkRepoError(err)
 
 	// Check if remote is valid (the same as ours
-	if !checkIfRemoteValid(remotes) {
-		errorutil.ExitError(errors.New(fmt.Sprintf("REPO: remote url is not equal to provided: %s", config.GetRepoURL())), errorutil.ErrorFailedCloning, &logger)
+	if !e.checkIfRemoteValid(remotes) {
+		util.ExitError(
+			errors.New(fmt.Sprintf("REPO: remote url is not equal to provided: %s", e.config.GetRepoURL())),
+			util.ErrorFailedCloning,
+			e.logger,
+		)
 	}
 
-	logger.PrintDebug(fmt.Sprintf("REPO: pulling changes: %s", config.GetRepoBranch()))
+	e.logger.PrintDebug(fmt.Sprintf("REPO: pulling changes: %s", e.config.GetRepoBranch()))
 	// We shall ignore error here, as Pull return messages such as "non-fast-forward update" as an error
 	err = workTree.Pull(&git.PullOptions{
-		RemoteName: config.GetRepoRemoteName(),
+		RemoteName: e.config.GetRepoRemoteName(),
 		Auth:       *auth,
 	})
 	// TODO: Even though the comment just above is true, we should handle this cases in a better way
 	if err != nil {
-		logger.PrintDebug(fmt.Sprintf("REPO: pull complete: %s", err.Error()))
+		e.logger.PrintDebug(fmt.Sprintf("REPO: pull complete: %s", err.Error()))
 	} else {
-		logger.PrintDebug("REPO: pull complete")
+		e.logger.PrintDebug("REPO: pull complete")
 	}
 
-	logger.PrintDebug(fmt.Sprintf("REPO: checking out: %s", config.GetRepoBranch()))
+	e.logger.PrintDebug(fmt.Sprintf("REPO: checking out: %s", e.config.GetRepoBranch()))
 	err = workTree.Checkout(&git.CheckoutOptions{
-		Branch: plumbing.ReferenceName(fmt.Sprintf("refs/remotes/%s/%s", config.GetRepoRemoteName(), config.GetRepoBranch())),
+		Branch: plumbing.ReferenceName(fmt.Sprintf("refs/remotes/%s/%s", e.config.GetRepoRemoteName(), e.config.GetRepoBranch())),
 		Create: false,
 		Force:  true,
 	})
-	checkRepoError(err)
+	e.checkRepoError(err)
 }
 
-func checkIfRemoteValid(remotes []*git.Remote) bool {
+// checkIfRemoteValid ...
+func (e *exporter) checkIfRemoteValid(remotes []*git.Remote) bool {
 	// Iterate over remotes
 	for _, remote := range remotes {
 		// Iterate over URLs
 		for _, url := range remote.Config().URLs {
 			// Compare current url with ours
-			if url == config.GetRepoURL() {
+			if url == e.config.GetRepoURL() {
 				return true
 			}
 		}
@@ -99,8 +112,9 @@ func checkIfRemoteValid(remotes []*git.Remote) bool {
 	return false
 }
 
-func checkRepoError(err error) {
+// checkRepoError ...
+func (e *exporter) checkRepoError(err error) {
 	if err != nil {
-		errorutil.ExitError(errors.New("REPO: "+err.Error()), errorutil.ErrorFailedCloning, &logger)
+		util.ExitError(errors.New("REPO: "+err.Error()), util.ErrorFailedCloning, e.logger)
 	}
 }

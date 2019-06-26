@@ -1,7 +1,7 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/errorutil"
+	"github.com/miniclip/gonsul/util"
 	"github.com/miniclip/gonsul/structs"
 
 	"bytes"
@@ -11,58 +11,62 @@ import (
 	"net/http"
 )
 
-const ConsulTxnLimit = 64
+const consulTxnLimit = 64
 
-func processConsulTransaction(transactions []structs.ConsulTxn, client *http.Client) {
+func (i *importer) processConsulTransaction(transactions []structs.ConsulTxn) {
 	// Encode our transaction into a JSON payload
 	jsonPayload, err := json.Marshal(transactions)
 	if err != nil {
-		errorutil.ExitError(errors.New("Marshal: "+err.Error()), errorutil.ErrorFailedJsonEncode, &logger)
+		util.ExitError(errors.New("Marshal: "+err.Error()), util.ErrorFailedJsonEncode, i.logger)
 	}
 
 	// Create our URL
-	consulUrl := config.GetConsulURL() + "/v1/txn"
+	consulUrl := i.config.GetConsulURL() + "/v1/txn"
 
 	// build our request
-	logger.PrintDebug("CONSUL: creating PUT request")
+	i.logger.PrintDebug("CONSUL: creating PUT request")
 	req, err := http.NewRequest("PUT", consulUrl, bytes.NewBuffer(jsonPayload))
 	if err != nil {
-		errorutil.ExitError(errors.New("NewRequestPUT: "+err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
+		util.ExitError(errors.New("NewRequestPUT: "+err.Error()), util.ErrorFailedConsulConnection, i.logger)
 	}
 
 	// Set ACL token
-	if config.GetConsulACL() != "" {
-		req.Header.Set("X-Consul-Token", config.GetConsulACL())
+	if i.config.GetConsulACL() != "" {
+		req.Header.Set("X-Consul-Token", i.config.GetConsulACL())
 	}
 
 	// Send the request via a client
 	// Do sends an HTTP request and
 	// returns an HTTP response
-	logger.PrintDebug("CONSUL: calling PUT request")
-	resp, err := client.Do(req)
+	i.logger.PrintDebug("CONSUL: calling PUT request")
+	resp, err := i.client.Do(req)
 	if err != nil {
-		errorutil.ExitError(errors.New("DoPUT: "+err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
+		util.ExitError(errors.New("DoPUT: "+err.Error()), util.ErrorFailedConsulConnection, i.logger)
 	}
 
 	// Clean response after function ends
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			i.logger.PrintError("Could not close Consul http body")
+		}
+	}()
 
 	// Read the response body
-	logger.PrintDebug("CONSUL: reading PUT response")
+	i.logger.PrintDebug("CONSUL: reading PUT response")
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		errorutil.ExitError(errors.New("ReadPutResponse: "+err.Error()), errorutil.ErrorFailedReadingResponse, &logger)
+		util.ExitError(errors.New("ReadPutResponse: "+err.Error()), util.ErrorFailedReadingResponse, i.logger)
 	}
 
 	// Cast response to string
 	bodyString := string(bodyBytes)
 
 	if resp.StatusCode != 200 {
-		errorutil.ExitError(errors.New("TransactionError: "+bodyString), errorutil.ErrorFailedConsulTxn, &logger)
+		util.ExitError(errors.New("TransactionError: "+bodyString), util.ErrorFailedConsulTxn, i.logger)
 	}
 
 	// All good. Output some status for each transaction operation
 	for _, txn := range transactions {
-		logger.PrintInfo("Operation: " + *txn.KV.Verb + " Path: " + *txn.KV.Key)
+		i.logger.PrintInfo("Operation: " + *txn.KV.Verb + " Path: " + *txn.KV.Key)
 	}
 }

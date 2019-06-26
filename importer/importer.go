@@ -2,77 +2,79 @@ package importer
 
 import (
 	"github.com/miniclip/gonsul/configuration"
-	"github.com/miniclip/gonsul/errorutil"
 	"github.com/miniclip/gonsul/structs"
+	"github.com/miniclip/gonsul/util"
 
 	"errors"
 	"fmt"
 	"net/http"
-	"time"
 )
 
-var config configuration.Config // Set our Configuration as global package scope
-var logger errorutil.Logger     // Set our Logger as global package scope
+// IImporter ...
+type IImporter interface {
+	Start(localData map[string]string)
+}
 
-func Start(localData map[string]string, conf *configuration.Config, log *errorutil.Logger) {
+// importer ...
+type importer struct {
+	config configuration.IConfig
+	logger util.ILogger
+	client *http.Client
+}
+
+// NewImporter
+func NewImporter(config configuration.IConfig, logger util.ILogger, client *http.Client) IImporter {
+	return &importer{config: config, logger: logger, client: client}
+}
+
+// Start ...
+func (i *importer) Start(localData map[string]string) {
 
 	// Create some local variables
 	var ops structs.OperationMatrix
 	var liveData map[string]string
 
-	// Set the appropriate values for our package global variables
-	config = *conf
-	logger = *log
-
-	// For control over HTTP client headers,
-	// redirect policy, and other settings,
-	// create a Client
-	// A Client is an HTTP client
-	client := &http.Client{
-		Timeout: time.Second * time.Duration(conf.GetTimeout()),
-	}
-
 	// Populate our Consul live data
-	liveData = createLiveData(client)
+	liveData = i.createLiveData()
 
 	// Create our operations Matrix
-	ops = createOperationMatrix(liveData, localData)
+	ops = i.createOperationMatrix(liveData, localData)
 
 	// Check if it's a dry run
-	if conf.GetStrategy() == configuration.StrategyDry {
+	if i.config.GetStrategy() == configuration.StrategyDry {
 		// Print matrix and exit
-		printOperations(ops, structs.OperationAll)
+		i.printOperations(ops, structs.OperationAll)
 
 		return
 	}
 
 	// Process our operations matrix
-	processOperations(ops, client)
+	i.processOperations(ops)
 
 	// Print result summary
-	logger.PrintInfo(fmt.Sprintf("Finished: %d Inserts, %d Updates %d Deletes", ops.GetTotalInserts(), ops.GetTotalUpdates(), ops.GetTotalDeletes()))
+	i.logger.PrintInfo(fmt.Sprintf("Finished: %d Inserts, %d Updates %d Deletes", ops.GetTotalInserts(), ops.GetTotalUpdates(), ops.GetTotalDeletes()))
 }
 
-func processOperations(matrix structs.OperationMatrix, client *http.Client) {
+func (i *importer) processOperations(matrix structs.OperationMatrix) {
 	// Did we got any deletes and are we allowed to delete them?
-	if !config.AllowDeletes() && matrix.HasDeletes() {
+	if !i.config.AllowDeletes() && matrix.HasDeletes() {
 		// We're not supposed to trigger Consul deletes, output report and exit with error
-		logger.PrintError("We're stopping as there are deletes and Gonsul is running without delete permission")
-		logger.PrintError("Below is all the Consul KV paths that should be deleted")
+		i.logger.PrintError("We're stopping as there are deletes and Gonsul is running without delete permission")
+		i.logger.PrintError("Below is all the Consul KV paths that should be deleted")
 
 		// Print matrix (or set in logger messages if in hook mode) and exit
-		if config.GetStrategy() == configuration.StrategyHook {
-			setDeletesToLogger(matrix)
+		if i.config.GetStrategy() == configuration.StrategyHook {
+			i.setDeletesToLogger(matrix)
 		} else {
-			printOperations(matrix, structs.OperationDelete)
+			i.printOperations(matrix, structs.OperationDelete)
 		}
-		errorutil.ExitError(errors.New(""), errorutil.ErrorDeleteNotAllowed, &logger)
+		util.ExitError(errors.New(""), util.ErrorDeleteNotAllowed, i.logger)
 	}
 
 	var transactions []structs.ConsulTxn
 
 	// Fill our channel to indicate a non interruptible work (It stops here if interruption in progress)
-	config.Working <- true
+	i.config.WorkingChan() <- true
 
 	// Loop each operation
 	for _, op := range matrix.GetOperations() {
@@ -89,11 +91,11 @@ func processOperations(matrix structs.OperationMatrix, client *http.Client) {
 			transactions = append(transactions, structs.ConsulTxn{KV: TxnKV})
 		}
 
-		if len(transactions) == ConsulTxnLimit {
+		if len(transactions) == consulTxnLimit {
 			// Flush current transactions because we hit max operation per transaction
 			// One day Consul will release an API endpoint from where we can get this limit
 			// so we do can stop hardcoding this constant
-			processConsulTransaction(transactions, client)
+			i.processConsulTransaction(transactions)
 			// Reset our transaction array
 			transactions = []structs.ConsulTxn{}
 		}
@@ -101,9 +103,9 @@ func processOperations(matrix structs.OperationMatrix, client *http.Client) {
 
 	// Do we have transactions to process
 	if len(transactions) > 0 {
-		processConsulTransaction(transactions, client)
+		i.processConsulTransaction(transactions)
 	}
 
 	// Consume our channel, to re-allow application interruption
-	<- config.Working
+	<-i.config.WorkingChan()
 }

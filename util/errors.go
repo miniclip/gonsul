@@ -1,4 +1,4 @@
-package errorutil
+package util
 
 const ErrorDeleteNotAllowed				= 10
 const ErrorBadParams 					= 20
@@ -15,7 +15,7 @@ type GonsulError struct {
 	Code int
 }
 
-func ExitError(err error, errorCode int, logger *Logger) {
+func ExitError(err error, errorCode int, logger ILogger) {
 	if err.Error() != "" {
 		logger.PrintError(err.Error())
 	}

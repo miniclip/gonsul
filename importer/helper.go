@@ -1,7 +1,7 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/errorutil"
+	"github.com/miniclip/gonsul/util"
 	"github.com/miniclip/gonsul/structs"
 
 	"github.com/cbroglie/mustache"
@@ -16,27 +16,26 @@ import (
 	"os"
 )
 
-func createOperationMatrix(liveData map[string]string, localData map[string]string) structs.OperationMatrix {
+// createOperationMatrix ...
+func (i *importer) createOperationMatrix(liveData map[string]string, localData map[string]string) structs.OperationMatrix {
 	// Set local error variable
 	var err error
-
 	// Create our Operations array
 	var operations = structs.NewOperationsMatrix()
 
 	// Check for updates or inserts
 	for localKey, localVal := range localData {
-
 		// Make sure we do not have an empty value (Consul KV will not have it)
 		if localVal == "" {
 			continue
 		}
 
 		// Shall we run secret replacement
-		if config.DoSecrets() {
-			localVal, err = mustache.Render(localVal, config.GetSecretsMap())
+		if i.config.DoSecrets() {
+			localVal, err = mustache.Render(localVal, i.config.GetSecretsMap())
 		}
 		if err != nil {
-			errorutil.ExitError(errors.New("MustacheRender: "+err.Error()), errorutil.ErrorFailedMustache, &logger)
+			util.ExitError(errors.New("MustacheRender: "+err.Error()), util.ErrorFailedMustache, i.logger)
 		}
 
 		// Base64 encode local value
@@ -54,6 +53,7 @@ func createOperationMatrix(liveData map[string]string, localData map[string]stri
 			operations.AddInsert(structs.Entry{KVPath: localKey, Value: localValB64})
 		}
 	}
+
 	// Now check for deletes
 	// Check for deletes
 	for liveKey := range liveData {
@@ -66,31 +66,36 @@ func createOperationMatrix(liveData map[string]string, localData map[string]stri
 	return operations
 }
 
-func createLiveData(client *http.Client) map[string]string {
+// createLiveData ...
+func (i *importer) createLiveData() map[string]string {
 	// Create some local variables
 	var liveData map[string]string
 
 	// Create our URL
-	consulUrl := config.GetConsulURL() + "/v1/kv/" + config.GetConsulbasePath() + "/?recurse=true"
+	consulUrl := i.config.GetConsulURL() + "/v1/kv/" + i.config.GetConsulBasePath() + "/?recurse=true"
 	// build our request
 	req, err := http.NewRequest("GET", consulUrl, nil)
 	if err != nil {
-		errorutil.ExitError(errors.New("NewRequestGET: "+err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
+		util.ExitError(errors.New("NewRequestGET: "+err.Error()), util.ErrorFailedConsulConnection, i.logger)
 	}
 
 	// Set ACL token (if given)
-	if config.GetConsulACL() != "" {
-		req.Header.Set("X-Consul-Token", config.GetConsulACL())
+	if i.config.GetConsulACL() != "" {
+		req.Header.Set("X-Consul-Token", i.config.GetConsulACL())
 	}
 
 	// Send the request via a client, Do sends an HTTP request and returns an HTTP response
-	resp, err := client.Do(req)
+	resp, err := i.client.Do(req)
 	if err != nil {
-		errorutil.ExitError(errors.New("DoGET: "+err.Error()), errorutil.ErrorFailedConsulConnection, &logger)
+		util.ExitError(errors.New("DoGET: "+err.Error()), util.ErrorFailedConsulConnection, i.logger)
 	}
 
 	// Clean response after function ends
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			i.logger.PrintError("Could not close Consul http body")
+		}
+	}()
 
 	// Invalid response, path is empty then, fresh import
 	if resp.StatusCode == 404 {
@@ -98,13 +103,13 @@ func createLiveData(client *http.Client) map[string]string {
 	}
 
 	if resp.StatusCode >= 400 {
-		errorutil.ExitError(errors.New("Invalid response from consul: "+resp.Status), errorutil.ErrorFailedConsulConnection, &logger)
+		util.ExitError(errors.New("Invalid response from consul: "+resp.Status), util.ErrorFailedConsulConnection, i.logger)
   }
 
 	// Read response from HTTP Response
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		errorutil.ExitError(errors.New("ReadGetResponse: "+err.Error()), errorutil.ErrorFailedReadingResponse, &logger)
+		util.ExitError(errors.New("ReadGetResponse: "+err.Error()), util.ErrorFailedReadingResponse, i.logger)
 	}
 	// Create a structure for our response, basically an array of
 	// Consul results because we're doing a recurse call
@@ -113,7 +118,7 @@ func createLiveData(client *http.Client) map[string]string {
 	bodyString := string(bodyBytes)
 	err = json.Unmarshal([]byte(bodyString), &bodyStruct)
 	if err != nil {
-		errorutil.ExitError(errors.New("Unmarshal: "+err.Error()), errorutil.ErrorFailedJsonDecode, &logger)
+		util.ExitError(errors.New("Unmarshal: "+err.Error()), util.ErrorFailedJsonDecode, i.logger)
 	}
 
 	// All good so far, instantiate our map
@@ -128,7 +133,8 @@ func createLiveData(client *http.Client) map[string]string {
 	return liveData
 }
 
-func printOperations(matrix structs.OperationMatrix, printWhat string) {
+// printOperations ...
+func (i *importer) printOperations(matrix structs.OperationMatrix, printWhat string) {
 	// Add a new line before the table
 	fmt.Println()
 	// Let's make sure there are any operation
@@ -151,17 +157,18 @@ func printOperations(matrix structs.OperationMatrix, printWhat string) {
 		// Outputs ASCII table
 		table.Render()
 	} else {
-		logger.PrintInfo("No operations to process, all synced")
+		i.logger.PrintInfo("No operations to process, all synced")
 	}
 }
 
-func setDeletesToLogger(matrix structs.OperationMatrix) {
+// setDeletesToLogger ...
+func (i *importer) setDeletesToLogger(matrix structs.OperationMatrix) {
 	// Let's make sure there are any operation
 	if matrix.GetTotalOps() > 0 {
 		// Loop each operation and add to table
 		for _, op := range matrix.GetOperations() {
 			if op.GetType() == structs.OperationDelete {
-				logger.AddMessage(op.GetPath())
+				i.logger.AddMessage(op.GetPath())
 			}
 		}
 	}

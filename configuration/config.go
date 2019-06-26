@@ -1,13 +1,12 @@
 package configuration
 
 import (
-	"github.com/miniclip/gonsul/errorutil"
+	"github.com/miniclip/gonsul/util"
 
 	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/miniclip/gonsul/interfaces"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -18,9 +17,7 @@ const StrategyOnce = "ONCE"
 const StrategyPoll = "POLL"
 const StrategyHook = "HOOK"
 
-var config *Config
-
-type Config struct {
+type config struct {
 	shouldClone     bool
 	logLevel        int
 	strategy        string
@@ -44,32 +41,46 @@ type Config struct {
 	timeout         int
 }
 
-func GetConfig(flagParser interfaces.IConfigFlags) (*Config, error) {
-	// Set our local error var
-	var err error
-	// Singleton check
-	if config == nil {
-		// Parse our flags
-		flags := flagParser.Parse()
-		// Build our configuration
-		config, err = buildConfig(flags)
-	}
-
-	// Return the config and error (whichever state they are)
-	return config, err
+// IConfig is our config interface, implemented by our config struct above. It allows
+// us to pass along an interface so we can mock and test any function that receives it
+type IConfig interface {
+	IsCloning() bool
+	GetLogLevel() int
+	GetStrategy() string
+	GetRepoURL() string
+	GetRepoSSHKey() string
+	GetRepoSSHUser() string
+	GetRepoBranch() string
+	GetRepoRemoteName() string
+	GetRepoBasePath() string
+	GetRepoRootDir() string
+	GetConsulURL() string
+	GetConsulACL() string
+	GetConsulBasePath() string
+	ShouldExpandJSON() bool
+	DoSecrets() bool
+	GetSecretsMap() map[string]string
+	AllowDeletes() bool
+	GetPollInterval() int
+	WorkingChan() chan bool
+	GetValidExtensions() []string
+	GetTimeout() int
 }
 
-func DestroyConfig() {
-	config = nil
+// NewConfig is our config struct constructor.
+func NewConfig() (IConfig, error) {
+	// Parse our flags
+	flags := parseFlags()
+	// Build our configuration
+	return buildConfig(flags)
 }
 
-func buildConfig(flags interfaces.ConfigFlags) (*Config, error) {
-
+func buildConfig(flags ConfigFlags) (*config, error) {
 	// Set some local variable and some others defaulted
 	var secrets map[string]string
 	var err error
-	clone := true
-	doSecrets := false
+	var clone = true
+	var doSecrets = false
 
 	// Make sure we have the mandatory flags set
 	if *flags.ConsulURL == "" || *flags.ValidExtensions == "" {
@@ -97,9 +108,9 @@ func buildConfig(flags interfaces.ConfigFlags) (*Config, error) {
 	}
 
 	// Make sure log level is properly set
-	errorLevel := errorutil.ErrorLevels[strings.ToUpper(*flags.LogLevel)]
-	if errorLevel < errorutil.LogLevelErr {
-		return nil, errors.New(fmt.Sprintf("log level invalid, must be one of: %s, %s, %s", errorutil.LogErr, errorutil.LogInfo, errorutil.LogDebug))
+	errorLevel := util.ErrorLevels[strings.ToUpper(*flags.LogLevel)]
+	if errorLevel < util.LogLevelErr {
+		return nil, errors.New(fmt.Sprintf("log level invalid, must be one of: %s, %s, %s", util.LogErr, util.LogInfo, util.LogDebug))
 	}
 
 	// Should we build a secrets map for on-the-fly mustache replacement
@@ -111,7 +122,7 @@ func buildConfig(flags interfaces.ConfigFlags) (*Config, error) {
 		doSecrets = true
 	}
 
-	return &Config{
+	return &config{
 		shouldClone:     clone,
 		logLevel:        errorLevel,
 		strategy:        strategy,
@@ -136,83 +147,87 @@ func buildConfig(flags interfaces.ConfigFlags) (*Config, error) {
 	}, nil
 }
 
-func (config *Config) IsCloning() bool {
+func (config *config) IsCloning() bool {
 	return config.shouldClone
 }
 
-func (config *Config) GetLogLevel() int {
+func (config *config) GetLogLevel() int {
 	return config.logLevel
 }
 
-func (config *Config) GetStrategy() string {
+func (config *config) GetStrategy() string {
 	return config.strategy
 }
 
-func (config *Config) GetRepoURL() string {
+func (config *config) GetRepoURL() string {
 	return config.repoUrl
 }
 
-func (config *Config) GetRepoSSHKey() string {
+func (config *config) GetRepoSSHKey() string {
 	return config.repoSSHKey
 }
 
-func (config *Config) GetRepoSSHUser() string {
+func (config *config) GetRepoSSHUser() string {
 	return config.repoSSHUser
 }
 
-func (config *Config) GetRepoBranch() string {
+func (config *config) GetRepoBranch() string {
 	return config.repoBranch
 }
 
-func (config *Config) GetRepoRemoteName() string {
+func (config *config) GetRepoRemoteName() string {
 	return config.repoRemoteName
 }
 
-func (config *Config) GetRepoBasePath() string {
+func (config *config) GetRepoBasePath() string {
 	return config.repoBasePath
 }
 
-func (config *Config) GetRepoRootDir() string {
+func (config *config) GetRepoRootDir() string {
 	return config.repoRootDir
 }
 
-func (config *Config) GetConsulURL() string {
+func (config *config) GetConsulURL() string {
 	return config.consulURL
 }
 
-func (config *Config) GetConsulACL() string {
+func (config *config) GetConsulACL() string {
 	return config.consulACL
 }
 
-func (config *Config) GetConsulbasePath() string {
+func (config *config) GetConsulBasePath() string {
 	return config.consulBasePath
 }
 
-func (config *Config) ShouldExpandJSON() bool {
+func (config *config) ShouldExpandJSON() bool {
 	return config.expandJSON
 }
 
-func (config *Config) DoSecrets() bool {
+func (config *config) DoSecrets() bool {
 	return config.doSecrets
 }
 
-func (config *Config) GetSecretsMap() map[string]string {
+func (config *config) GetSecretsMap() map[string]string {
 	return config.secretsMap
 }
 
-func (config *Config) AllowDeletes() bool {
+func (config *config) AllowDeletes() bool {
 	return config.allowDeletes
 }
 
-func (config *Config) GetPollInterval() int {
+func (config *config) GetPollInterval() int {
 	return config.pollInterval
 }
 
-func (config *Config) GetValidExtensions() []string {
+func (config *config) WorkingChan() chan bool {
+	return config.Working
+}
+
+func (config *config) GetValidExtensions() []string {
 	return config.validExtensions
 }
 
-func (config *Config) GetTimeout() int {
+func (config *config) GetTimeout() int {
 	return config.timeout
 }
 
