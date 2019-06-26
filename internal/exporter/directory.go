@@ -1,7 +1,7 @@
 package exporter
 
 import (
-	"github.com/miniclip/gonsul/structs"
+	"github.com/miniclip/gonsul/internal/entities"
 
 	"fmt"
 	"io/ioutil"
@@ -85,7 +85,7 @@ func (e *exporter) cleanFilePath(filePath string) string {
 }
 
 // createPiece ...
-func (e *exporter) createPiece(path string, value string) structs.Entry {
+func (e *exporter) createPiece(path string, value string) entities.Entry {
 	// Create our Consul base path variable
 	var kvPath string
 
@@ -96,8 +96,8 @@ func (e *exporter) createPiece(path string, value string) structs.Entry {
 
 	// Finally append the Consul KV base path to the file path, if base is not an empty string
 	if kvPath != "" {
-		return structs.Entry{KVPath: kvPath + "/" + path, Value: value}
+		return entities.Entry{KVPath: kvPath + "/" + path, Value: value}
 	}
 
-	return structs.Entry{KVPath: path, Value: value}
+	return entities.Entry{KVPath: path, Value: value}
 }

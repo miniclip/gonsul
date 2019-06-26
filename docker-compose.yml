@@ -1,0 +1,8 @@
+version: '3.5'
+services:
+  consul:
+    image: consul:1.5.1
+    ports:
+      - "8301:8301"
+      - "8500:8500"
+      - "8600:8600/udp"

@@ -1,8 +1,8 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/util"
-	"github.com/miniclip/gonsul/structs"
+	"github.com/miniclip/gonsul/internal/entities"
+	"github.com/miniclip/gonsul/internal/util"
 
 	"github.com/cbroglie/mustache"
 	"github.com/olekukonko/tablewriter"
@@ -17,11 +17,11 @@ import (
 )
 
 // createOperationMatrix ...
-func (i *importer) createOperationMatrix(liveData map[string]string, localData map[string]string) structs.OperationMatrix {
+func (i *importer) createOperationMatrix(liveData map[string]string, localData map[string]string) entities.OperationMatrix {
 	// Set local error variable
 	var err error
 	// Create our Operations array
-	var operations = structs.NewOperationsMatrix()
+	var operations = entities.NewOperationsMatrix()
 
 	// Check for updates or inserts
 	for localKey, localVal := range localData {
@@ -46,11 +46,11 @@ func (i *importer) createOperationMatrix(liveData map[string]string, localData m
 			// it does, is it different value?
 			if localValB64 != liveVal {
 				// Gentleman we have an update
-				operations.AddUpdate(structs.Entry{KVPath: localKey, Value: localValB64})
+				operations.AddUpdate(entities.Entry{KVPath: localKey, Value: localValB64})
 			}
 		} else {
 			// Current key does not exist in live data, we have an insert
-			operations.AddInsert(structs.Entry{KVPath: localKey, Value: localValB64})
+			operations.AddInsert(entities.Entry{KVPath: localKey, Value: localValB64})
 		}
 	}
 
@@ -59,7 +59,7 @@ func (i *importer) createOperationMatrix(liveData map[string]string, localData m
 	for liveKey := range liveData {
 		if _, ok := localData[liveKey]; !ok {
 			// Not found in local - DELETE
-			operations.AddDelete(structs.Entry{KVPath: liveKey, Value: ""})
+			operations.AddDelete(entities.Entry{KVPath: liveKey, Value: ""})
 		}
 	}
 
@@ -104,7 +104,7 @@ func (i *importer) createLiveData() map[string]string {
 
 	if resp.StatusCode >= 400 {
 		util.ExitError(errors.New("Invalid response from consul: "+resp.Status), util.ErrorFailedConsulConnection, i.logger)
-  }
+	}
 
 	// Read response from HTTP Response
 	bodyBytes, err := ioutil.ReadAll(resp.Body)
@@ -113,7 +113,7 @@ func (i *importer) createLiveData() map[string]string {
 	}
 	// Create a structure for our response, basically an array of
 	// Consul results because we're doing a recurse call
-	var bodyStruct []structs.ConsulResult
+	var bodyStruct []entities.ConsulResult
 	// Convert response to a string and then parse it to our struct
 	bodyString := string(bodyBytes)
 	err = json.Unmarshal([]byte(bodyString), &bodyStruct)
@@ -134,7 +134,7 @@ func (i *importer) createLiveData() map[string]string {
 }
 
 // printOperations ...
-func (i *importer) printOperations(matrix structs.OperationMatrix, printWhat string) {
+func (i *importer) printOperations(matrix entities.OperationMatrix, printWhat string) {
 	// Add a new line before the table
 	fmt.Println()
 	// Let's make sure there are any operation
@@ -146,8 +146,8 @@ func (i *importer) printOperations(matrix structs.OperationMatrix, printWhat str
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
 		// Loop each operation and add to table
 		for _, op := range matrix.GetOperations() {
-			if printWhat == structs.OperationAll || printWhat == op.GetType() {
-				if op.GetType() == structs.OperationDelete {
+			if printWhat == entities.OperationAll || printWhat == op.GetType() {
+				if op.GetType() == entities.OperationDelete {
 					table.Append([]string{"!!", op.GetType(), op.GetVerb(), op.GetPath()})
 				} else {
 					table.Append([]string{"", op.GetType(), op.GetVerb(), op.GetPath()})
@@ -162,12 +162,12 @@ func (i *importer) printOperations(matrix structs.OperationMatrix, printWhat str
 }
 
 // setDeletesToLogger ...
-func (i *importer) setDeletesToLogger(matrix structs.OperationMatrix) {
+func (i *importer) setDeletesToLogger(matrix entities.OperationMatrix) {
 	// Let's make sure there are any operation
 	if matrix.GetTotalOps() > 0 {
 		// Loop each operation and add to table
 		for _, op := range matrix.GetOperations() {
-			if op.GetType() == structs.OperationDelete {
+			if op.GetType() == entities.OperationDelete {
 				i.logger.AddMessage(op.GetPath())
 			}
 		}

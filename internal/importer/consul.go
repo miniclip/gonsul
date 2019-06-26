@@ -1,8 +1,8 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/util"
-	"github.com/miniclip/gonsul/structs"
+	"github.com/miniclip/gonsul/internal/entities"
+	"github.com/miniclip/gonsul/internal/util"
 
 	"bytes"
 	"encoding/json"
@@ -13,7 +13,8 @@ import (
 
 const consulTxnLimit = 64
 
-func (i *importer) processConsulTransaction(transactions []structs.ConsulTxn) {
+// processConsulTransaction ...
+func (i *importer) processConsulTransaction(transactions []entities.ConsulTxn) {
 	// Encode our transaction into a JSON payload
 	jsonPayload, err := json.Marshal(transactions)
 	if err != nil {

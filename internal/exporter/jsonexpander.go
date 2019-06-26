@@ -1,7 +1,7 @@
 package exporter
 
 import (
-	"github.com/miniclip/gonsul/util"
+	"github.com/miniclip/gonsul/internal/util"
 
 	"encoding/json"
 	"errors"

@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/miniclip/gonsul/configuration"
+	"github.com/miniclip/gonsul/internal/configuration"
 )
 
 func (a *Application) once() {

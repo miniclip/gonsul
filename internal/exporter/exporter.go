@@ -1,8 +1,8 @@
 package exporter
 
 import (
-	"github.com/miniclip/gonsul/configuration"
-	"github.com/miniclip/gonsul/util"
+	"github.com/miniclip/gonsul/internal/configuration"
+	"github.com/miniclip/gonsul/internal/util"
 )
 
 // IExporter ...

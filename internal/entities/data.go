@@ -1,4 +1,4 @@
-package structs
+package entities
 
 type Entry struct {
 	KVPath string

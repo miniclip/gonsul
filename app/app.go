@@ -1,10 +1,10 @@
 package app
 
 import (
-	"github.com/miniclip/gonsul/configuration"
-	"github.com/miniclip/gonsul/exporter"
-	"github.com/miniclip/gonsul/importer"
-	"github.com/miniclip/gonsul/util"
+	"github.com/miniclip/gonsul/internal/configuration"
+	"github.com/miniclip/gonsul/internal/exporter"
+	"github.com/miniclip/gonsul/internal/importer"
+	"github.com/miniclip/gonsul/internal/util"
 	"sync"
 
 	"fmt"

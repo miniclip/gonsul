@@ -1,9 +1,9 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/configuration"
-	"github.com/miniclip/gonsul/structs"
-	"github.com/miniclip/gonsul/util"
+	"github.com/miniclip/gonsul/internal/configuration"
+	"github.com/miniclip/gonsul/internal/entities"
+	"github.com/miniclip/gonsul/internal/util"
 
 	"errors"
 	"fmt"
@@ -31,7 +31,7 @@ func NewImporter(config configuration.IConfig, logger util.ILogger, client *http
 func (i *importer) Start(localData map[string]string) {
 
 	// Create some local variables
-	var ops structs.OperationMatrix
+	var ops entities.OperationMatrix
 	var liveData map[string]string
 
 	// Populate our Consul live data
@@ -43,7 +43,7 @@ func (i *importer) Start(localData map[string]string) {
 	// Check if it's a dry run
 	if i.config.GetStrategy() == configuration.StrategyDry {
 		// Print matrix and exit
-		i.printOperations(ops, structs.OperationAll)
+		i.printOperations(ops, entities.OperationAll)
 
 		return
 	}
@@ -55,7 +55,7 @@ func (i *importer) Start(localData map[string]string) {
 	i.logger.PrintInfo(fmt.Sprintf("Finished: %d Inserts, %d Updates %d Deletes", ops.GetTotalInserts(), ops.GetTotalUpdates(), ops.GetTotalDeletes()))
 }
 
-func (i *importer) processOperations(matrix structs.OperationMatrix) {
+func (i *importer) processOperations(matrix entities.OperationMatrix) {
 	// Did we got any deletes and are we allowed to delete them?
 	if !i.config.AllowDeletes() && matrix.HasDeletes() {
 		// We're not supposed to trigger Consul deletes, output report and exit with error
@@ -66,12 +66,12 @@ func (i *importer) processOperations(matrix structs.OperationMatrix) {
 		if i.config.GetStrategy() == configuration.StrategyHook {
 			i.setDeletesToLogger(matrix)
 		} else {
-			i.printOperations(matrix, structs.OperationDelete)
+			i.printOperations(matrix, entities.OperationDelete)
 		}
 		util.ExitError(errors.New(""), util.ErrorDeleteNotAllowed, i.logger)
 	}
 
-	var transactions []structs.ConsulTxn
+	var transactions []entities.ConsulTxn
 
 	// Fill our channel to indicate a non interruptible work (It stops here if interruption in progress)
 	i.config.WorkingChan() <- true
@@ -82,13 +82,13 @@ func (i *importer) processOperations(matrix structs.OperationMatrix) {
 		// so we can clearly identify nil values, as in https://willnorris.com/2014/05/go-rest-apis-and-pointers
 		verb := op.GetVerb()
 		path := op.GetPath()
-		if op.GetType() == structs.OperationDelete {
-			TxnKV := structs.ConsulTxnKV{Verb: &verb, Key: &path}
-			transactions = append(transactions, structs.ConsulTxn{KV: TxnKV})
+		if op.GetType() == entities.OperationDelete {
+			TxnKV := entities.ConsulTxnKV{Verb: &verb, Key: &path}
+			transactions = append(transactions, entities.ConsulTxn{KV: TxnKV})
 		} else {
 			val := op.GetValue()
-			TxnKV := structs.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
-			transactions = append(transactions, structs.ConsulTxn{KV: TxnKV})
+			TxnKV := entities.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
+			transactions = append(transactions, entities.ConsulTxn{KV: TxnKV})
 		}
 
 		if len(transactions) == consulTxnLimit {
@@ -97,7 +97,7 @@ func (i *importer) processOperations(matrix structs.OperationMatrix) {
 			// so we do can stop hardcoding this constant
 			i.processConsulTransaction(transactions)
 			// Reset our transaction array
-			transactions = []structs.ConsulTxn{}
+			transactions = []entities.ConsulTxn{}
 		}
 	}
 

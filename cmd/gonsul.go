@@ -2,14 +2,16 @@ package main
 
 import (
 	"github.com/miniclip/gonsul/app"
-	"github.com/miniclip/gonsul/configuration"
-	"github.com/miniclip/gonsul/exporter"
-	"github.com/miniclip/gonsul/importer"
-	"github.com/miniclip/gonsul/util"
+	"github.com/miniclip/gonsul/internal/configuration"
+	"github.com/miniclip/gonsul/internal/exporter"
+	"github.com/miniclip/gonsul/internal/importer"
+	"github.com/miniclip/gonsul/internal/util"
 	"net/http"
 	"os"
 	"time"
 )
+
+var AppVersion = ""
 
 func main() {
 	defer func() {

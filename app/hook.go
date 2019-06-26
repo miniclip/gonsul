@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/miniclip/gonsul/util"
+	"github.com/miniclip/gonsul/internal/util"
 
 	"github.com/gorilla/mux"
 
