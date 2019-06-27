@@ -158,8 +158,8 @@ This is the branch name that Gonsul should try to checkout.
 
 
 ### `--repo-remote-name` 
-> `require: `  **no**  
-> `default: `  **origin**  
+> `require:` **no**  
+> `default:` **origin**  
 > `example:` **`--repo-remote-name=upstream_name`**
 
 This is the name of the remote configured on the repository. We need it to properly trigger some PULL and CHECKOUT 
@@ -178,6 +178,9 @@ parseable.
 to look for a Consul KV path that starts with `configs/relative/path` but instead, it will from any deeper path from 
 this folder down.
 
+**Note2:** If this flag is not set, the below value of `--repo-root` will be used as the hierarchy path within Consul, 
+which is normally not desired. Most of the times we should/must use this flag.
+
 
 ### `--repo-root` 
 > `require:` **yes**  
@@ -187,6 +190,9 @@ This is the absolute path where Gonsul should clone the repository in your OS fi
 when provided without providing the previous flag `--repo-url`, Gonsul will try to parse the given absolute path without 
 using GIT. This could be useful if you want to use Gonsul as filesystem parser and Consul sync without doing any GIT 
 operations.
+
+**Note:** This value/path will be used as the the hierarchy path on Consul if no value is given on above `--repo-base-path` 
+which in many cases is not intended. Most of the times, we should also use the flag above.
 
 
 ### `--consul-url` 
