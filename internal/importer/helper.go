@@ -3,6 +3,7 @@ package importer
 import (
 	"github.com/miniclip/gonsul/internal/entities"
 	"github.com/miniclip/gonsul/internal/util"
+	"strings"
 
 	"github.com/cbroglie/mustache"
 	"github.com/olekukonko/tablewriter"
@@ -14,6 +15,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 )
 
 // createOperationMatrix ...
@@ -72,7 +74,10 @@ func (i *importer) createLiveData() map[string]string {
 	var liveData map[string]string
 
 	// Create our URL
-	consulUrl := i.config.GetConsulURL() + "/v1/kv/" + i.config.GetConsulBasePath() + "/?recurse=true"
+	consulBasePath := strings.TrimSuffix(i.config.GetConsulBasePath(), "/")
+	fullUrl := path.Join("v1", "kv", consulBasePath)
+	hostname := strings.TrimSuffix(i.config.GetConsulURL(), "/")
+	consulUrl := hostname + "/" + fullUrl + "/?recurse=true"
 	// build our request
 	req, err := http.NewRequest("GET", consulUrl, nil)
 	if err != nil {

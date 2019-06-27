@@ -60,7 +60,7 @@ func (i *importer) processOperations(matrix entities.OperationMatrix) {
 	if !i.config.AllowDeletes() && matrix.HasDeletes() {
 		// We're not supposed to trigger Consul deletes, output report and exit with error
 		i.logger.PrintError("We're stopping as there are deletes and Gonsul is running without delete permission")
-		i.logger.PrintError("Below is all the Consul KV paths that should be deleted")
+		i.logger.PrintError("Below is all the Consul KV paths that would be deleted")
 
 		// Print matrix (or set in logger messages if in hook mode) and exit
 		if i.config.GetStrategy() == configuration.StrategyHook {

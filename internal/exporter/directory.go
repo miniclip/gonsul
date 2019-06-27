@@ -5,6 +5,7 @@ import (
 
 	"fmt"
 	"io/ioutil"
+	"path"
 	"path/filepath"
 	"strings"
 )
@@ -73,7 +74,7 @@ func (e *exporter) parseFile(filePath string, value string, localData map[string
 func (e *exporter) cleanFilePath(filePath string) string {
 	// Set part of the config that should be removed from the current
 	// file system path in order to build our final Consul KV path
-	replace := e.config.GetRepoRootDir() + "/" + e.config.GetRepoBasePath()
+	replace := path.Join(e.config.GetRepoRootDir(), e.config.GetRepoBasePath())
 	// Remove the above from the file system path
 	entryFilePath := strings.Replace(filePath, replace, "", 1)
 	// Remove any left slash
@@ -85,7 +86,7 @@ func (e *exporter) cleanFilePath(filePath string) string {
 }
 
 // createPiece ...
-func (e *exporter) createPiece(path string, value string) entities.Entry {
+func (e *exporter) createPiece(piecePath string, value string) entities.Entry {
 	// Create our Consul base path variable
 	var kvPath string
 
@@ -96,8 +97,9 @@ func (e *exporter) createPiece(path string, value string) entities.Entry {
 
 	// Finally append the Consul KV base path to the file path, if base is not an empty string
 	if kvPath != "" {
-		return entities.Entry{KVPath: kvPath + "/" + path, Value: value}
+		fullPath := path.Join(kvPath, piecePath)
+		return entities.Entry{KVPath: fullPath, Value: value}
 	}
 
-	return entities.Entry{KVPath: path, Value: value}
+	return entities.Entry{KVPath: piecePath, Value: value}
 }
