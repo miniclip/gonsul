@@ -27,11 +27,13 @@ func NewOnce(config config.IConfig, logger util.ILogger, exporter exporter.IExpo
 	}
 }
 
+// RunOnce is our entry point function for the Once Application mode
 func (a *once) RunOnce() {
+	strategy := a.config.GetStrategy()
 	// Check strategy
-	if a.config.GetStrategy() == config.StrategyDry {
+	if strategy == config.StrategyDry {
 		a.logger.PrintInfo("Starting in mode: DRYRUN")
-	} else if a.config.GetStrategy() == config.StrategyOnce {
+	} else if strategy == config.StrategyOnce {
 		a.logger.PrintInfo("Starting in mode: ONCE")
 	}
 

@@ -98,7 +98,7 @@ func TestApplication_Start(t *testing.T) {
 			Expect(poll.AssertExpectations(t)).To(BeTrue(), "Assert RunPoll")
 			Expect(poll.AssertNumberOfCalls(t, "RunPoll", 1))
 		default:
-			// Start application (On this test case, we need to make sure none of the applications run)
+			// Start application (On this test case, we need to make sure none of the application modes run)
 			application.Start()
 			// Validate expectations
 			Expect(cfg.AssertExpectations(t)).To(BeTrue(), "Assert GetStrategy")
