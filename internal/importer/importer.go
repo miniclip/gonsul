@@ -1,7 +1,7 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/internal/configuration"
+	"github.com/miniclip/gonsul/internal/config"
 	"github.com/miniclip/gonsul/internal/entities"
 	"github.com/miniclip/gonsul/internal/util"
 
@@ -17,13 +17,13 @@ type IImporter interface {
 
 // importer ...
 type importer struct {
-	config configuration.IConfig
+	config config.IConfig
 	logger util.ILogger
 	client *http.Client
 }
 
 // NewImporter
-func NewImporter(config configuration.IConfig, logger util.ILogger, client *http.Client) IImporter {
+func NewImporter(config config.IConfig, logger util.ILogger, client *http.Client) IImporter {
 	return &importer{config: config, logger: logger, client: client}
 }
 
@@ -41,7 +41,7 @@ func (i *importer) Start(localData map[string]string) {
 	ops = i.createOperationMatrix(liveData, localData)
 
 	// Check if it's a dry run
-	if i.config.GetStrategy() == configuration.StrategyDry {
+	if i.config.GetStrategy() == config.StrategyDry {
 		// Print matrix and exit
 		i.printOperations(ops, entities.OperationAll)
 
@@ -63,7 +63,7 @@ func (i *importer) processOperations(matrix entities.OperationMatrix) {
 		i.logger.PrintError("Below is all the Consul KV paths that would be deleted")
 
 		// Print matrix (or set in logger messages if in hook mode) and exit
-		if i.config.GetStrategy() == configuration.StrategyHook {
+		if i.config.GetStrategy() == config.StrategyHook {
 			i.setDeletesToLogger(matrix)
 		} else {
 			i.printOperations(matrix, entities.OperationDelete)

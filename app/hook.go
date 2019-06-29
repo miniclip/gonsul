@@ -1,32 +1,55 @@
 package app
 
 import (
+	"github.com/miniclip/gonsul/internal/config"
 	"github.com/miniclip/gonsul/internal/util"
+	"sync"
 
-	"github.com/gorilla/mux"
-
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 )
 
-// hook ...
-func (a *Application) hook() {
-	// User information
-	a.logger.PrintInfo("Starting in mode: HOOK")
+type Ihook interface {
+	RunHook()
+}
 
-	// Start our router and HTTP server
-	router := mux.NewRouter()
-	router.HandleFunc("/v1/run", a.hookHandler).Methods("GET")
-	err := http.ListenAndServe(":8000", router)
-	if err != nil {
-		util.ExitError(errors.New("Hook: "+err.Error()), util.ErrorFailedHTTPServer, a.logger)
+type hook struct {
+	mutex  sync.Mutex
+	http   IHookHttp
+	config config.IConfig
+	logger util.ILogger
+	once   Ionce
+}
+
+func NewHook(http IHookHttp, config config.IConfig, logger util.ILogger, once Ionce) Ihook {
+	return &hook{
+		mutex:  sync.Mutex{},
+		http:   http,
+		config: config,
+		logger: logger,
+		once:   once,
 	}
 }
 
+// hook ...
+func (a *hook) RunHook() {
+	// User information
+	a.logger.PrintInfo("Starting in mode: HOOK")
+
+	// Start our HTTP Server
+	a.http.Start("/v1/run", a.httpHandler)
+}
+
 // run ...
-func (a *Application) hookHandler(response http.ResponseWriter, request *http.Request) {
+func (a *hook) httpHandler(response http.ResponseWriter, request *http.Request) {
+	// Make sure this is a GET request
+	if request.Method != http.MethodGet {
+		response.WriteHeader(http.StatusNotFound)
+		_, _ = response.Write([]byte("400 - ups, page not found!"))
+		return
+	}
+
 	// Defer our recover, so we can properly send an HTTP error
 	// response and carry on serving subsequent requests
 	defer func(logger util.ILogger) {

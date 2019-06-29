@@ -1,7 +1,7 @@
 package exporter
 
 import (
-	"github.com/miniclip/gonsul/internal/configuration"
+	"github.com/miniclip/gonsul/internal/config"
 	"github.com/miniclip/gonsul/internal/util"
 	"path"
 )
@@ -13,12 +13,12 @@ type IExporter interface {
 
 // exporter ...
 type exporter struct {
-	config configuration.IConfig
+	config config.IConfig
 	logger util.ILogger
 }
 
 // NewExporter ...
-func NewExporter(config configuration.IConfig, logger util.ILogger) IExporter {
+func NewExporter(config config.IConfig, logger util.ILogger) IExporter {
 	return &exporter{config: config, logger: logger}
 }
 

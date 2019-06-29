@@ -1,13 +1,8 @@
 package app
 
 import (
-	"github.com/miniclip/gonsul/internal/configuration"
-	"github.com/miniclip/gonsul/internal/exporter"
-	"github.com/miniclip/gonsul/internal/importer"
-	"github.com/miniclip/gonsul/internal/util"
-	"sync"
-
 	"fmt"
+	"github.com/miniclip/gonsul/internal/config"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,48 +10,54 @@ import (
 
 // Application ...
 type Application struct {
-	mutex    *sync.Mutex
-	config   configuration.IConfig
-	logger   util.ILogger
-	importer importer.IImporter
-	exporter exporter.IExporter
+	config  config.IConfig
+	once    Ionce
+	hook    Ihook
+	poll    Ipoll
+	sigChan chan os.Signal
 }
 
 // NewApplication ...
-func NewApplication(config configuration.IConfig, logger util.ILogger, im importer.IImporter, ex exporter.IExporter) *Application {
+func NewApplication(
+	config config.IConfig,
+	once Ionce,
+	hook Ihook,
+	poll Ipoll,
+	sigChan chan os.Signal,
+) *Application {
 	return &Application{
-		mutex:    &sync.Mutex{},
-		config:   config,
-		logger:   logger,
-		importer: im,
-		exporter: ex,
+		config:  config,
+		once:    once,
+		hook:    hook,
+		poll:    poll,
+		sigChan: sigChan,
 	}
 }
 
 // Start ...
 func (a *Application) Start() {
-	// Create our channel for the Signal and relay Signal Notify to it
-	sigChannel := make(chan os.Signal)
-	signal.Notify(sigChannel, syscall.SIGINT, syscall.SIGTERM)
+	// Relay all Signals to our channel
+	signal.Notify(a.sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	// Spin a routine to wait for a Signal
 	go func() {
 		// Wait for a signal through the channel
-		<-sigChannel
+		<-a.sigChan
+		fmt.Print(" Interrupt received, waiting for work to finish... ")
 		// Try to write to working channel (thus waiting for any in progress non interruptible work)
 		a.config.WorkingChan() <- false
 		// Exit
-		fmt.Print(" Interrupt received... Quitting!")
+		fmt.Print(" Quitting!")
 		os.Exit(0)
 	}()
 
 	// Switch our run strategy
 	switch a.config.GetStrategy() {
-	case configuration.StrategyDry, configuration.StrategyOnce:
-		a.once()
-	case configuration.StrategyHook:
-		a.hook()
-	case configuration.StrategyPoll:
-		a.poll()
+	case config.StrategyDry, config.StrategyOnce:
+		a.once.RunOnce()
+	case config.StrategyHook:
+		a.hook.RunHook()
+	case config.StrategyPoll:
+		a.poll.RunPoll()
 	}
 }

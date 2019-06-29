@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/miniclip/gonsul/app"
-	"github.com/miniclip/gonsul/internal/configuration"
+	"github.com/miniclip/gonsul/internal/config"
 	"github.com/miniclip/gonsul/internal/exporter"
 	"github.com/miniclip/gonsul/internal/importer"
 	"github.com/miniclip/gonsul/internal/util"
@@ -25,26 +25,33 @@ func main() {
 
 func start() {
 	// Build our configuration
-	config, err := configuration.NewConfig()
+	cfg, err := config.NewConfig()
 	if err != nil {
 		util.ExitError(err, util.ErrorBadParams, util.NewLogger(0))
 	}
 
 	// Build our logger
-	logger := util.NewLogger(config.GetLogLevel())
+	logger := util.NewLogger(cfg.GetLogLevel())
 
 	// Are we just printing the app version
-	if config.IsShowVersion() {
+	if cfg.IsShowVersion() {
 		fmt.Println("Gonsul version: " + app.Version)
 		fmt.Println("Build date: " + app.BuildDate)
 		return
 	}
 
-	// Build our application and all it's dependencies
-	httpClient := &http.Client{Timeout: time.Second * time.Duration(config.GetTimeout())}
-	imp := importer.NewImporter(config, logger, httpClient)
-	exp := exporter.NewExporter(config, logger)
-	application := app.NewApplication(config, logger, imp, exp)
+	// Build all dependencies for our application
+	hookHttpServer := app.NewHookHttp(cfg, logger)
+	httpClient := &http.Client{Timeout: time.Second * time.Duration(cfg.GetTimeout())}
+	exp := exporter.NewExporter(cfg, logger)
+	imp := importer.NewImporter(cfg, logger, httpClient)
+	sigChannel := make(chan os.Signal)
+	// Build our Applications
+	once := app.NewOnce(cfg, logger, exp, imp)
+	hook := app.NewHook(hookHttpServer, cfg, logger, once)
+	poll := app.NewPoll(cfg, logger, once, 0)
+	// Build our main Application container
+	application := app.NewApplication(cfg, once, hook, poll, sigChannel)
 
 	// Start our application
 	application.Start()

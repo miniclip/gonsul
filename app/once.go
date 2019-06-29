@@ -1,14 +1,37 @@
 package app
 
 import (
-	"github.com/miniclip/gonsul/internal/configuration"
+	"github.com/miniclip/gonsul/internal/config"
+	"github.com/miniclip/gonsul/internal/exporter"
+	"github.com/miniclip/gonsul/internal/importer"
+	"github.com/miniclip/gonsul/internal/util"
 )
 
-func (a *Application) once() {
+type Ionce interface {
+	RunOnce()
+}
+
+type once struct {
+	config   config.IConfig
+	logger   util.ILogger
+	exporter exporter.IExporter
+	importer importer.IImporter
+}
+
+func NewOnce(config config.IConfig, logger util.ILogger, exporter exporter.IExporter, importer importer.IImporter) Ionce {
+	return &once{
+		config:   config,
+		logger:   logger,
+		exporter: exporter,
+		importer: importer,
+	}
+}
+
+func (a *once) RunOnce() {
 	// Check strategy
-	if a.config.GetStrategy() == configuration.StrategyDry {
+	if a.config.GetStrategy() == config.StrategyDry {
 		a.logger.PrintInfo("Starting in mode: DRYRUN")
-	} else if a.config.GetStrategy() == configuration.StrategyOnce {
+	} else if a.config.GetStrategy() == config.StrategyOnce {
 		a.logger.PrintInfo("Starting in mode: ONCE")
 	}
 
