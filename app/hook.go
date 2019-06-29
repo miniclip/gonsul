@@ -70,7 +70,7 @@ func (a *hook) httpHandler(response http.ResponseWriter, request *http.Request) 
 	a.logger.PrintInfo("HTTP Incoming connection from: " + request.RemoteAddr)
 
 	// On every request, run Once as usual business
-	a.once()
+	a.once.RunOnce()
 
 	// If here, process ran smooth, return HTTP 200
 	response.WriteHeader(http.StatusOK)
