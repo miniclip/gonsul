@@ -18,23 +18,16 @@ func getCommonMocks() (cfg *mocks.IConfig, log *mocks.ILogger, exp *mocks.IExpor
 	return
 }
 
-func getMockedOnce() Ionce {
-	cfg, log, exp, imp := getCommonMocks()
-
+func getMockedOnce(cfg *mocks.IConfig, log *mocks.ILogger, exp *mocks.IExporter, imp *mocks.IImporter) Ionce {
 	return NewOnce(cfg, log, exp, imp)
 }
 
-func getMockedHook() Ihook {
-	http := &mocks.IHookHttp{}
-	cfg, log, _, _ := getCommonMocks()
-
-	return NewHook(http, cfg, log, getMockedOnce())
+func getMockedHook(http *mocks.IHookHttp, cfg *mocks.IConfig, log *mocks.ILogger, once *mocks.Ionce) Ihook {
+	return NewHook(http, cfg, log, once)
 }
 
-func getMockedPoll() Ipoll {
-	cfg, log, _, _ := getCommonMocks()
-
-	return NewPoll(cfg, log, getMockedOnce(), 1)
+func getMockedPoll(cfg *mocks.IConfig, log *mocks.ILogger, once *mocks.Ionce) Ipoll {
+	return NewPoll(cfg, log, once, 1)
 }
 
 func TestApplication_Start(t *testing.T) {
