@@ -10,17 +10,16 @@ import (
 func TestPoll_RunPoll(t *testing.T) {
 	RegisterTestingT(t)
 
-	// Create our mocks and our Once mode
+	// Create our mocks, our Once mode and our application
 	cfg, log, _, _ := getCommonMocks()
 	once := &mocks.Ionce{}
+	poll := getMockedPoll(cfg, log, once)
 
 	// Create our assertions
 	cfg.On("GetPollInterval").Return(1)
 	log.On("PrintInfo", mock.Anything).Return()
 	log.On("PrintDebug", mock.Anything).Return()
 	once.On("RunOnce").Return()
-
-	poll := getMockedPoll(cfg, log, once)
 
 	// Run our application mode
 	poll.RunPoll()
