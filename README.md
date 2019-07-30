@@ -355,4 +355,7 @@ when processing the filesystem and it found a corrupted JSON file - check your J
 
 * **70** - This error occurs when secret replacement fails.
 
-* **80** - This is a generic HTTP error. Run Gonsul in debug mode to look for more information regarding the error. 
+* **80** - This is a generic HTTP error. Run Gonsul in debug mode to look for more information regarding the error.
+
+# Developer Notes
+- WIP 
