@@ -5,6 +5,13 @@ development-to-master flow is much friendly and familiar to any development team
 
 Downloads in [releases page](https://github.com/miniclip/gonsul/releases).
 
+## Important Notes!
+**The master branch is being refactored**. No (big) breaking changes will happen but codebase is under significant changes. 
+Mainly adding tests, makefile, and code refactor/cleanup.
+
+Please use the releases/downloads page.  
+Instructions for development will be added soon!
+
 ## How It Processes a Repository
 Gonsul will (optionally) clone your repository into the filesystem. After, it will recursively parse all the files in 
 the directory. Whenever Gonsul moves one level deep into a folder, the folder name is added as a Consul KV path part 
