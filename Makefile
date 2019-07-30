@@ -14,27 +14,19 @@ BUILD_DATE=$(shell date -u +%Y%m%d.%H%M%S)
 LDFLAGS_APP=-ldflags "-X github.com/miniclip/gonsul/app.Version=${VERSION} -X github.com/miniclip/gonsul/app.BuildDate=${BUILD_DATE}"
 
 # Builds the project
-build: install-app build-app
+install: dependencies build
 
 # Builds the application
-build-app:
+build:
 	@echo "=== Building SRV ==="
 	go build ${LDFLAGS_APP} -a -installsuffix cgo -o ${APP_BINARY} ${APP}
 	@echo "=== Done ==="
 
 # Installs our project: runs Dep;
-install-app:
+dependencies:
 	@echo "=== Installing dependencies ==="
 	dep ensure -v
 	@echo "=== Done ==="
-
-# Runs full tests (bootstraps, mocks, code compliance and unit tests)
-full-test: bootstrap mocks fmt test
-
-# Runs our bootstraping application (Mysql, Configs, Etc)
-bootstrap:
-	@echo "=== Bootstraping DB & Configs ==="
-	go run ./cmd/bootstrap/bootstrap.go
 
 # Generates the needed mocks
 mocks:
