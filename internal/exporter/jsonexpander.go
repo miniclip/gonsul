@@ -9,8 +9,8 @@ import (
 	"strconv"
 )
 
-// expandJSON ...
-func (e *exporter) expandJSON(path string, jsonData string, localData map[string]string) {
+// validateJSON ...
+func (e *exporter) validateJSON(path string, jsonData string) map[string]interface{} {
 	// Create "generic" json struct
 	var arbitraryJSON map[string]interface{}
 
@@ -20,11 +20,18 @@ func (e *exporter) expandJSON(path string, jsonData string, localData map[string
 	// Decoded JSON ok?
 	if err != nil {
 		util.ExitError(
-			errors.New(fmt.Sprintf("error parsing JSON file: %s", err.Error())),
+			errors.New(fmt.Sprintf("error parsing JSON file: %s with Message: %s", path, err.Error())),
 			util.ErrorFailedJsonDecode,
 			e.logger,
 		)
 	}
+
+	return arbitraryJSON
+}
+
+// expandJSON ...
+func (e *exporter) expandJSON(path string, jsonData string, localData map[string]string) {
+	arbitraryJSON := e.validateJSON(path, jsonData)
 
 	// Iterate over our "generic" JSON structure
 	e.traverseJSON(path, arbitraryJSON, localData)

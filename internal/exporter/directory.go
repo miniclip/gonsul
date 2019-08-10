@@ -51,22 +51,27 @@ func (e *exporter) isExtensionValid(extension string) bool {
 func (e *exporter) parseFile(filePath string, value string, localData map[string]string) {
 	// Extract our file extension and cleanup file path
 	ext := filepath.Ext(filePath)
-	path := e.cleanFilePath(filePath)
-	// Check if we should parse JSON files
-	if e.config.ShouldExpandJSON() {
-		// Check if the file is a JSON one
-		if ext == ".json" {
+	cleanedPath := e.cleanFilePath(filePath)
+
+	// Check if the file is a JSON one
+	if ext == ".json" {
+		// Check if we should parse JSON files
+		if e.config.ShouldExpandJSON() {
 			// Great, we should iterate our JSON (And that's the value)
-			e.expandJSON(path, value, localData)
+			e.expandJSON(cleanedPath, value, localData)
 
 			// we must return here, to avoid importing the file as blob
 			return
 		}
+
+		// Not expanding json file, but we should validate anyways
+		// HEADS UP: Below function will exit program if any error found
+		_ = e.validateJSON(cleanedPath, value)
 	}
 
 	// Not expanding JSON files, create new single "piece" with the
 	// value given (the file content) and add to collection
-	piece := e.createPiece(path, value)
+	piece := e.createPiece(cleanedPath, value)
 	localData[piece.KVPath] = piece.Value
 }
 
