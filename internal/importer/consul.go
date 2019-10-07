@@ -1,8 +1,8 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/internal/entities"
-	"github.com/miniclip/gonsul/internal/util"
+	"internal/entities"
+	"internal/util"
 
 	"bytes"
 	"encoding/json"
@@ -12,6 +12,7 @@ import (
 )
 
 const consulTxnLimit = 64
+const maximumPayloadSize = 500000 // max size is actually 512kb
 
 // processConsulTransaction ...
 func (i *importer) processConsulTransaction(transactions []entities.ConsulTxn) {
