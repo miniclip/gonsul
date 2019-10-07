@@ -1,10 +1,10 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/internal/config"
-	"github.com/miniclip/gonsul/internal/entities"
-	"github.com/miniclip/gonsul/internal/util"
-
+	"internal/config"
+	"internal/entities"
+	"internal/util"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -82,14 +82,35 @@ func (i *importer) processOperations(matrix entities.OperationMatrix) {
 		// so we can clearly identify nil values, as in https://willnorris.com/2014/05/go-rest-apis-and-pointers
 		verb := op.GetVerb()
 		path := op.GetPath()
+
+
+		currentPayload, err := json.Marshal(transactions)
+		if err != nil {
+			util.ExitError(errors.New("Marshal: "+err.Error()), util.ErrorFailedJsonEncode, i.logger)
+		}
+		currentPayloadSize := len(currentPayload);
+
+		var TxnKV entities.ConsulTxnKV;
+
 		if op.GetType() == entities.OperationDelete {
-			TxnKV := entities.ConsulTxnKV{Verb: &verb, Key: &path}
-			transactions = append(transactions, entities.ConsulTxn{KV: TxnKV})
+			TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path}
 		} else {
 			val := op.GetValue()
-			TxnKV := entities.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
-			transactions = append(transactions, entities.ConsulTxn{KV: TxnKV})
+			TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
 		}
+
+		// If the next transaction brings us over the maximum payload size, flush the current transactions
+		nextOpPayload, err := json.Marshal(TxnKV)
+		if err != nil {
+			util.ExitError(errors.New("Marshal: "+err.Error()), util.ErrorFailedJsonEncode, i.logger)
+		}
+
+		if currentPayloadSize + len(nextOpPayload) > maximumPayloadSize {
+			i.processConsulTransaction(transactions)
+			transactions = []entities.ConsulTxn{}
+		}
+
+		transactions = append(transactions, entities.ConsulTxn{KV: TxnKV})
 
 		if len(transactions) == consulTxnLimit {
 			// Flush current transactions because we hit max operation per transaction
