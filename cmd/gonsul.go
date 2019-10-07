@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/miniclip/gonsul/app"
-	"github.com/miniclip/gonsul/internal/config"
-	"github.com/miniclip/gonsul/internal/exporter"
-	"github.com/miniclip/gonsul/internal/importer"
-	"github.com/miniclip/gonsul/internal/util"
+	"app"
+	"internal/config"
+	"internal/exporter"
+	"internal/importer"
+	"internal/util"
 	"net/http"
 	"os"
 	"time"

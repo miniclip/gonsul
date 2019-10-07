@@ -1,8 +1,8 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/internal/entities"
-	"github.com/miniclip/gonsul/internal/util"
+	"internal/entities"
+	"internal/util"
 	"strings"
 
 	"github.com/cbroglie/mustache"

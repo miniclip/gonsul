@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/miniclip/gonsul/internal/util"
+	"internal/util"
 
 	"encoding/json"
 	"errors"

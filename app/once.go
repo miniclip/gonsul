@@ -1,10 +1,10 @@
 package app
 
 import (
-	"github.com/miniclip/gonsul/internal/config"
-	"github.com/miniclip/gonsul/internal/exporter"
-	"github.com/miniclip/gonsul/internal/importer"
-	"github.com/miniclip/gonsul/internal/util"
+	"internal/config"
+	"internal/exporter"
+	"internal/importer"
+	"internal/util"
 )
 
 type Ionce interface {
