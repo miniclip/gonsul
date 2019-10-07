@@ -3,7 +3,7 @@ package config
 import (
 	"flag"
 	"fmt"
-	"github.com/miniclip/gonsul/internal/util"
+	"internal/util"
 )
 
 type ConfigFlags struct {

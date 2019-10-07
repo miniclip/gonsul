@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/miniclip/gonsul/internal/config"
-	"github.com/miniclip/gonsul/internal/util"
+	"internal/config"
+	"internal/util"
 
 	"errors"
 	"net/http"
