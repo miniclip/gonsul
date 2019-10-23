@@ -24,6 +24,7 @@ type ConfigFlags struct {
 	AllowDeletes    *bool
 	PollInterval    *int
 	ValidExtensions *string
+	KeepFileExt 	*bool	
 	Timeout         *int
 	Version         *bool
 }
@@ -48,6 +49,7 @@ func parseFlags() ConfigFlags {
 	flags.AllowDeletes = flag.Bool("allow-deletes", false, "Show Gonsul issue deletes? (If not, nothing will be done and a report on conflicting deletes will be shown) (Default false)")
 	flags.PollInterval = flag.Int("poll-interval", 60, "The number of seconds for the repository polling interval")
 	flags.ValidExtensions = flag.String("input-ext", "json,txt,ini", "A comma separated list of file extensions valid as input")
+	flags.KeepFileExt = flag.Bool("keep-FileExt", false, "Do we want to keep file name extensions ? (If not set to true defaults by ommiting the file name extension.) (Default false)")
 	flags.Timeout = flag.Int("timeout", 5, "The number of seconds for the client to wait for a response from Consul")
 	flags.Version = flag.Bool("v", false, "Will show the Gonsul version")
 

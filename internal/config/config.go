@@ -38,6 +38,7 @@ type config struct {
 	pollInterval    int
 	Working         chan bool
 	validExtensions []string
+	keepFileExt	    bool	
 	timeout         int
 	version         bool
 }
@@ -65,6 +66,7 @@ type IConfig interface {
 	GetPollInterval() int
 	WorkingChan() chan bool
 	GetValidExtensions() []string
+	KeepFileExt() bool	
 	GetTimeout() int
 	IsShowVersion() bool
 }
@@ -152,6 +154,7 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 		pollInterval:    *flags.PollInterval,
 		Working:         make(chan bool, 1),
 		validExtensions: extensions,
+		keepFileExt:     *flags.KeepFileExt,		
 		timeout:         *flags.Timeout,
 		version:         *flags.Version,
 	}, nil
@@ -235,6 +238,10 @@ func (config *config) WorkingChan() chan bool {
 
 func (config *config) GetValidExtensions() []string {
 	return config.validExtensions
+}
+
+func (config *config) KeepFileExt() bool {
+	return config.keepFileExt
 }
 
 func (config *config) GetTimeout() int {
