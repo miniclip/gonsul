@@ -86,9 +86,8 @@ func (e *exporter) cleanFilePath(filePath string) string {
 	entryFilePath = strings.Replace(entryFilePath, "/", "", 1)
 	// Set or not the file extension when importing to consul k/v the file
 	if !e.config.KeepFileExt() {
-	entryFilePath = strings.TrimSuffix(entryFilePath, filepath.Ext(entryFilePath))
+		entryFilePath = strings.TrimSuffix(entryFilePath, filepath.Ext(entryFilePath))
 	}
-	
 
 	return entryFilePath
 }
