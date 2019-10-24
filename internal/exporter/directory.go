@@ -84,8 +84,10 @@ func (e *exporter) cleanFilePath(filePath string) string {
 	entryFilePath := strings.Replace(filePath, replace, "", 1)
 	// Remove any left slash
 	entryFilePath = strings.Replace(entryFilePath, "/", "", 1)
-	// Remove the file extension from the file system path
-	entryFilePath = strings.TrimSuffix(entryFilePath, filepath.Ext(entryFilePath))
+	// Set or not the file extension when importing to consul k/v the file
+	if !e.config.KeepFileExt() {
+		entryFilePath = strings.TrimSuffix(entryFilePath, filepath.Ext(entryFilePath))
+	}
 
 	return entryFilePath
 }
