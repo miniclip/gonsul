@@ -21,10 +21,10 @@ type ConfigFlags struct {
 	ConsulBasePath  *string
 	ExpandJSON      *bool
 	SecretsFile     *string
-	AllowDeletes    *bool
+	AllowDeletes    *string
 	PollInterval    *int
 	ValidExtensions *string
-	KeepFileExt 	*bool	
+	KeepFileExt     *bool
 	Timeout         *int
 	Version         *bool
 }
@@ -46,7 +46,7 @@ func parseFlags() ConfigFlags {
 	flags.ConsulBasePath = flag.String("consul-base-path", "", "The base KV path will be prefixed to dir path")
 	flags.ExpandJSON = flag.Bool("expand-json", false, "Expand and parse JSON files as full paths? (Default false)")
 	flags.SecretsFile = flag.String("secrets-file", "", "A key value json file with placeholders->secrets mapping, in order to do on the fly replace")
-	flags.AllowDeletes = flag.Bool("allow-deletes", false, "Show Gonsul issue deletes? (If not, nothing will be done and a report on conflicting deletes will be shown) (Default false)")
+	flags.AllowDeletes = flag.String("allow-deletes", "false", "false, nothing will be done and a report on conflicting deletes will be shown; true: deletes reported conflitcs and proceeds; skip: reportes conflitcs, does not performe any deletes and proceeds syncing remaining files.) (Default false)")
 	flags.PollInterval = flag.Int("poll-interval", 60, "The number of seconds for the repository polling interval")
 	flags.ValidExtensions = flag.String("input-ext", "json,txt,ini", "A comma separated list of file extensions valid as input")
 	flags.KeepFileExt = flag.Bool("keep-FileExt", false, "Do we want to keep file name extensions ? (If not set to true defaults by ommiting the file name extension.) (Default false)")
