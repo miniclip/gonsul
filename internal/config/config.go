@@ -34,7 +34,7 @@ type config struct {
 	expandJSON      bool
 	doSecrets       bool
 	secretsMap      map[string]string
-	allowDeletes    bool
+	allowDeletes    string
 	pollInterval    int
 	Working         chan bool
 	validExtensions []string
@@ -62,7 +62,7 @@ type IConfig interface {
 	ShouldExpandJSON() bool
 	DoSecrets() bool
 	GetSecretsMap() map[string]string
-	AllowDeletes() bool
+	AllowDeletes() string
 	GetPollInterval() int
 	WorkingChan() chan bool
 	GetValidExtensions() []string
@@ -109,6 +109,12 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 	strategy := strings.ToUpper(*flags.Strategy)
 	if strategy != StrategyDry && strategy != StrategyOnce && strategy != StrategyPoll && strategy != StrategyHook {
 		return nil, errors.New(fmt.Sprintf("strategy invalid, must be one of: %s, %s, %s, %s", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
+	}
+
+	// Make sure delete method is properly given
+	allowDeletes := strings.ToLower(*flags.AllowDeletes)
+	if allowDeletes != "true" && allowDeletes != "false" && allowDeletes != "skip" {
+		return nil, errors.New(fmt.Sprintf("AllowDelete method is invalid, please define one of the following valid options as argument: true, false, skip"))
 	}
 
 	// Shall we use a local copy of the repository instead of cloning ourselves
@@ -224,8 +230,8 @@ func (config *config) GetSecretsMap() map[string]string {
 	return config.secretsMap
 }
 
-func (config *config) AllowDeletes() bool {
-	return config.allowDeletes
+func (config *config) AllowDeletes() string {
+	return strings.ToLower(config.allowDeletes)
 }
 
 func (config *config) GetPollInterval() int {

@@ -99,6 +99,7 @@ Below are all available command line flags for starting **Gonsul**
 --allow-deletes=
 --poll-interval=
 --input-ext=
+--KeepFileExt=
 ```
 Below is the full description for each individual command line flag
 
@@ -290,18 +291,21 @@ no secrets are written to disk.
 > `default:` **false**  
 > `example:` **`--allow-deletes=true`**
 
-This instructs Gonsul how it should proceed in case some Consul deletes are to be made. If the value for this flag is 
-`true`, Gonsul will proceed with the delete operations, but if instead is `false`, Gonsul will not proceed with the 
-deletes, and depending on the `--strategy` it is running at, it respondes with some different behaviors, such as:
-- **`ONCE`** When running in once mode, Gonsul will terminate with __error code 10__ and output to console all the 
-Consul KV paths that are supposed to be deleted.
-- **`HOOK`** Gonsul will repond to the HTTP request with error 503 and will also return the following headers and values:
-	- `X-Gonsul-Error:10`
-	- `X-Gonsul-Delete-Paths:path1/to/be/deleted,path2/to/be/deleted`
-- **`POLL`** Gonsul will log all the paths to be deleted as ERRORS and carry on, over and over. In this mode you should 
-monitor Gonsul logs to detect any found errors, and react appropriately. The errors will follow the syntax: 
-	- `[ERROR] [28-01-2018 17:38:25 1234] error-10 path1/to/be/deleted`
-	- `[ERROR] [28-01-2018 17:38:25 5678] error-10 path2/to/be/deleted`
+This option sets Gonsul behaviour on how it should proceed in case some Consul deletes are to be made. 
+
+- **`true`** With this mode deletes are allowed and Gonsul will proceed with the delete operations, removed files from the repo and/or files added directly on consul k/v will be deleted.
+- **`skip`** In this mode, Gonsul will skip the deletion check and operations and will just sync/push files to consul k/v path (can lead to inconsistencies at the consul k/v path since removed files from the repo and/or files added directly on consul k/v will stay in the consul path because we are skipping deletions).
+- **`false`** _this is the default mode_ and Gonsul will not proceed with the deletes, and depending on the `--strategy` it is running at, will respond with some different behaviors, such as:
+
+    1. **`ONCE`** When running in once mode, Gonsul will terminate with __error code 10__ and output to console all the Consul KV paths that are supposed to be deleted.
+
+    2. **`HOOK`** Gonsul will repond to the HTTP request with error 503 and will also return the following headers and values:
+        - `X-Gonsul-Error:10`
+        - `X-Gonsul-Delete-Paths:path1/to/be/deleted,path2/to/be/deleted`
+
+    3. **`POLL`** Gonsul will log all the paths to be deleted as ERRORS and carry on, over and over. In this mode you should monitor Gonsul logs to detect any found errors, and react appropriately. The errors will follow the syntax: 
+        - `[ERROR] [28-01-2018 17:38:25 1234] error-10 path1/to/be/deleted`
+        - `[ERROR] [28-01-2018 17:38:25 5678] error-10 path2/to/be/deleted`
 
 
 ### `--poll-interval`
@@ -321,6 +325,12 @@ This is the number of seconds you want Gonsul to wait between checks on the repo
 This is the file extensions that Gonsul should consider as inputs to populate our Consul. Please set each extension 
 without the dot, and separate each extension with a comma.
 
+### `--keep-FileExt`
+> `require:` **no**  
+> `default:` **false**  
+> `example:` **`--keep-FileExt=true`**
+
+Gonsul default behavior is to remove/trim the filextension from the filename when pushing files to consul k/v path, if this option is set to true gonsul will keep the file extension.
 
 ### `--timeout`
 > `require:` **no**  

@@ -59,7 +59,7 @@ func (i *importer) createOperationMatrix(liveData map[string]string, localData m
 	// Now check for deletes
 	// Check for deletes
 	for liveKey := range liveData {
-		if _, ok := localData[liveKey]; !ok {
+		if _, ok := localData[liveKey]; !ok && i.config.AllowDeletes() != "skip" {
 			// Not found in local - DELETE
 			operations.AddDelete(entities.Entry{KVPath: liveKey, Value: ""})
 		}

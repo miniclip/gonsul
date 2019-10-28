@@ -1,12 +1,12 @@
 package importer
 
 import (
-	"internal/config"
-	"internal/entities"
-	"internal/util"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"internal/config"
+	"internal/entities"
+	"internal/util"
 	"net/http"
 )
 
@@ -57,7 +57,7 @@ func (i *importer) Start(localData map[string]string) {
 
 func (i *importer) processOperations(matrix entities.OperationMatrix) {
 	// Did we got any deletes and are we allowed to delete them?
-	if !i.config.AllowDeletes() && matrix.HasDeletes() {
+	if i.config.AllowDeletes() == "false" && matrix.HasDeletes() {
 		// We're not supposed to trigger Consul deletes, output report and exit with error
 		i.logger.PrintError("We're stopping as there are deletes and Gonsul is running without delete permission")
 		i.logger.PrintError("Below is all the Consul KV paths that would be deleted")
@@ -83,14 +83,13 @@ func (i *importer) processOperations(matrix entities.OperationMatrix) {
 		verb := op.GetVerb()
 		path := op.GetPath()
 
-
 		currentPayload, err := json.Marshal(transactions)
 		if err != nil {
 			util.ExitError(errors.New("Marshal: "+err.Error()), util.ErrorFailedJsonEncode, i.logger)
 		}
-		currentPayloadSize := len(currentPayload);
+		currentPayloadSize := len(currentPayload)
 
-		var TxnKV entities.ConsulTxnKV;
+		var TxnKV entities.ConsulTxnKV
 
 		if op.GetType() == entities.OperationDelete {
 			TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path}
@@ -105,7 +104,7 @@ func (i *importer) processOperations(matrix entities.OperationMatrix) {
 			util.ExitError(errors.New("Marshal: "+err.Error()), util.ErrorFailedJsonEncode, i.logger)
 		}
 
-		if currentPayloadSize + len(nextOpPayload) > maximumPayloadSize {
+		if currentPayloadSize+len(nextOpPayload) > maximumPayloadSize {
 			i.processConsulTransaction(transactions)
 			transactions = []entities.ConsulTxn{}
 		}
