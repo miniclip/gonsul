@@ -325,10 +325,10 @@ This is the number of seconds you want Gonsul to wait between checks on the repo
 This is the file extensions that Gonsul should consider as inputs to populate our Consul. Please set each extension 
 without the dot, and separate each extension with a comma.
 
-### `--keep-FileExt`
+### `--keep-ext`
 > `require:` **no**  
 > `default:` **false**  
-> `example:` **`--keep-FileExt=true`**
+> `example:` **`--keep-ext=true`**
 
 Gonsul default behavior is to remove/trim the filextension from the filename when pushing files to consul k/v path, if this option is set to true gonsul will keep the file extension.
 

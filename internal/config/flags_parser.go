@@ -49,7 +49,7 @@ func parseFlags() ConfigFlags {
 	flags.AllowDeletes = flag.String("allow-deletes", "false", "false, nothing will be done and a report on conflicting deletes will be shown; true: deletes reported conflitcs and proceeds; skip: reportes conflitcs, does not performe any deletes and proceeds syncing remaining files.) (Default false)")
 	flags.PollInterval = flag.Int("poll-interval", 60, "The number of seconds for the repository polling interval")
 	flags.ValidExtensions = flag.String("input-ext", "json,txt,ini", "A comma separated list of file extensions valid as input")
-	flags.KeepFileExt = flag.Bool("keep-FileExt", false, "Do we want to keep file name extensions ? (If not set to true defaults by ommiting the file name extension.) (Default false)")
+	flags.KeepFileExt = flag.Bool("keep-ext", false, "Do we want to keep file name extensions ? (If not set to true defaults by ommiting the file name extension.) (Default false)")
 	flags.Timeout = flag.Int("timeout", 5, "The number of seconds for the client to wait for a response from Consul")
 	flags.Version = flag.Bool("v", false, "Will show the Gonsul version")
 
