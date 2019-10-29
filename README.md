@@ -99,7 +99,7 @@ Below are all available command line flags for starting **Gonsul**
 --allow-deletes=
 --poll-interval=
 --input-ext=
---KeepFileExt=
+--keep-ext=
 ```
 Below is the full description for each individual command line flag
 
