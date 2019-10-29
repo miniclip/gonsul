@@ -1,9 +1,11 @@
 package app
 
 import (
-	"tests/mocks"
+	"github.com/miniclip/gonsul/tests/mocks"
+
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	"testing"
 )
 

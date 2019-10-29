@@ -1,9 +1,10 @@
 package app
 
 import (
+	"github.com/miniclip/gonsul/internal/config"
+	"github.com/miniclip/gonsul/internal/util"
+
 	"fmt"
-	"internal/config"
-	"internal/util"
 	"time"
 )
 

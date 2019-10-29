@@ -1,9 +1,11 @@
 package app
 
 import (
-	"internal/config"
+	"github.com/miniclip/gonsul/internal/config"
+
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/mock"
+
 	"testing"
 )
 

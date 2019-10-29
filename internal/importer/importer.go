@@ -1,12 +1,13 @@
 package importer
 
 import (
+	"github.com/miniclip/gonsul/internal/config"
+	"github.com/miniclip/gonsul/internal/entities"
+	"github.com/miniclip/gonsul/internal/util"
+
 	"encoding/json"
 	"errors"
 	"fmt"
-	"internal/config"
-	"internal/entities"
-	"internal/util"
 	"net/http"
 )
 

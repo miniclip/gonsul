@@ -1,8 +1,9 @@
 package exporter
 
 import (
-	"internal/config"
-	"internal/util"
+	"github.com/miniclip/gonsul/internal/config"
+	"github.com/miniclip/gonsul/internal/util"
+
 	"path"
 )
 

@@ -1,8 +1,8 @@
 package app
 
 import (
-	"internal/config"
-	"tests/mocks"
+	"github.com/miniclip/gonsul/internal/config"
+	"github.com/miniclip/gonsul/tests/mocks"
 
 	. "github.com/onsi/gomega"
 	"os"
@@ -34,7 +34,7 @@ func TestApplication_Start(t *testing.T) {
 	RegisterTestingT(t)
 
 	// Create our table tests
-	tests := []struct {Strategy string}{
+	tests := []struct{ Strategy string }{
 		{Strategy: "ONCE"},
 		{Strategy: "DRYRUN"},
 		{Strategy: "POLL"},

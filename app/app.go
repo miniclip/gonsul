@@ -1,8 +1,9 @@
 package app
 
 import (
+	"github.com/miniclip/gonsul/internal/config"
+
 	"fmt"
-	"internal/config"
 	"os"
 	"os/signal"
 	"syscall"
