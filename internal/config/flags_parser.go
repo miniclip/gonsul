@@ -20,6 +20,7 @@ type ConfigFlags struct {
 	ConsulACL       *string
 	ConsulBasePath  *string
 	ExpandJSON      *bool
+	ExpandYAML      *bool
 	SecretsFile     *string
 	AllowDeletes    *string
 	PollInterval    *int
@@ -45,6 +46,7 @@ func parseFlags() ConfigFlags {
 	flags.ConsulACL = flag.String("consul-acl", "", "The Consul ACL to use (Must have write on the KV following --consul-base path)")
 	flags.ConsulBasePath = flag.String("consul-base-path", "", "The base KV path will be prefixed to dir path")
 	flags.ExpandJSON = flag.Bool("expand-json", false, "Expand and parse JSON files as full paths? (Default false)")
+	flags.ExpandYAML = flag.Bool("expand-yaml", false, "Expand and parse YAML files as full paths? (Default false)")
 	flags.SecretsFile = flag.String("secrets-file", "", "A key value json file with placeholders->secrets mapping, in order to do on the fly replace")
 	flags.AllowDeletes = flag.String("allow-deletes", "false", "false, nothing will be done and a report on conflicting deletes will be shown; true: deletes reported conflitcs and proceeds; skip: reportes conflitcs, does not performe any deletes and proceeds syncing remaining files.) (Default false)")
 	flags.PollInterval = flag.Int("poll-interval", 60, "The number of seconds for the repository polling interval")

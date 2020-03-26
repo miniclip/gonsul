@@ -69,6 +69,22 @@ func (e *exporter) parseFile(filePath string, value string, localData map[string
 		_ = e.validateJSON(cleanedPath, value)
 	}
 
+	// Check if the file is a YAML one
+	if ext == ".yaml" {
+		// Check if we should parse JSON files
+		if e.config.ShouldExpandYAML() {
+			// Great, we should iterate our JSON (And that's the value)
+			e.expandYAML(cleanedPath, value, localData)
+
+			// we must return here, to avoid importing the file as blob
+			return
+		}
+
+		// Not expanding json file, but we should validate anyways
+		// HEADS UP: Below function will exit program if any error found
+		_ = e.validateYAML(cleanedPath, value)
+	}
+
 	// Not expanding JSON files, create new single "piece" with the
 	// value given (the file content) and add to collection
 	piece := e.createPiece(cleanedPath, value)

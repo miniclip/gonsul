@@ -253,7 +253,25 @@ previous folder/file hierarchy and create single entries in Consul KV for each v
 
 **Note:** Because Consul is a simple KV Store, where **all values are strings**, there are some caveats regarding the 
 JSON file expanding. Some important ones are:
-- Any **arrays found** are inserted into Consul a bracketed comma separated value string, 
+- Any **arrays found** are inserted into Consul as a bracketed comma separated value string, 
+for example: `["val1","val2","otherval"]`
+- All the **boolean values** are inserted into Consul as strings `true` and `false`. This might break some applications 
+when reading configuration, as they will be just strings after all.
+- All the **numeric values** will obviously be inserted into consul as strings. Again, take that into consideration when 
+reading configurations from your app as any numeric values will be strings when coming out from Consul.
+
+
+### `--expand-yaml` 
+> `require:` **no**  
+> `default:` **false**  
+> `example:` **`--expand-yaml=true`**
+
+This will tell Gonsul how to treat YAML files. If true, Gonsul will traverse the YAML files and append the path to the 
+previous folder/file hierarchy and create single entries in Consul KV for each value.
+
+**Note:** Because Consul is a simple KV Store, where **all values are strings**, there are some caveats regarding the 
+YAML file expanding. Some important ones are:
+- Any **arrays found** are inserted into Consul as a bracketed comma separated value string, 
 for example: `["val1","val2","otherval"]`
 - All the **boolean values** are inserted into Consul as strings `true` and `false`. This might break some applications 
 when reading configuration, as they will be just strings after all.
