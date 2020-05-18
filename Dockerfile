@@ -7,12 +7,13 @@ RUN apk --no-cache add build-base dep git
 RUN mkdir -p $GONSUL
 WORKDIR $GONSUL
 COPY . .
-RUN env
 RUN make
 
 FROM alpine
 ARG GONSUL
 
 COPY --from=build $GONSUL/bin/gonsul /usr/bin/gonsul
+RUN adduser -D gonsul
+USER gonsul
 
 ENTRYPOINT [ "/usr/bin/gonsul" ]
