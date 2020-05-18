@@ -80,8 +80,16 @@ tasks are natively handled by Gonsul, as long as filesystem and network permissi
 
 
 ## Available Flags
-Below are all available command line flags for starting **Gonsul**
+Below are all available command line flags for starting **Gonsul**. Flags may be specified on the command line, using
+environment variables (flag prefixed with "GONSUL_", converted to upper case, and "-" changed to "_", e.g.
+`GONSUL_REPO_URL`), or using a configuration file (`--config=`). The order of precedence for specifying flags is:
+1. Command line options
+2. Environment variables
+3. Configuration file
+4. Default values
+
 ```bash
+--config=
 --strategy=
 --repo-url=
 --repo-ssh-key=
@@ -101,7 +109,17 @@ Below are all available command line flags for starting **Gonsul**
 --input-ext=
 --keep-ext=
 ```
-Below is the full description for each individual command line flag
+Below is the full description for each individual command line flag.
+
+
+### `--config`
+> `require:` **no**
+> `example:` **`--config=gonsul.conf`**
+
+This specifies a file with configuration settings for the options described below. File syntax:
+- Empty lines and lines beginning with a "#" character are ignored.
+- Flags and values can be separated with whitespace or the "=" character (`strategy ONCE` or `strategy=DRYRUN`).
+- Booleans can be empty (true) or set with "1/0", "t/f", "T/F", "true/false", "TRUE/FALSE", or "True/False".
 
 
 ### `--strategy` 

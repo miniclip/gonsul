@@ -1,4 +1,5 @@
 .idea
+bin
 vendor
 tests/mocks/*
 !tests/mocks/.gitkeep

@@ -1,9 +1,10 @@
 package config
 
 import (
-	"flag"
 	"fmt"
+	"os"
 	"github.com/miniclip/gonsul/internal/util"
+	"github.com/namsral/flag"
 )
 
 type ConfigFlags struct {
@@ -32,6 +33,10 @@ type ConfigFlags struct {
 
 func parseFlags() ConfigFlags {
 	flags := ConfigFlags{}
+
+	flag.CommandLine = flag.NewFlagSetWithEnvPrefix(os.Args[0], "GONSUL", flag.ExitOnError)
+
+	flag.String(flag.DefaultConfigFlagname, "", "The path to a configuration file")
 
 	flags.LogLevel = flag.String("log-level", util.LogErr, fmt.Sprintf("The desired log level (%s, %s, %s)", util.LogErr, util.LogInfo, util.LogDebug))
 	flags.Strategy = flag.String("strategy", StrategyOnce, fmt.Sprintf("The Gonsul operation mode (%s, %s, %s, %s)", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
