@@ -5,11 +5,11 @@ import (
 
 	"encoding/json"
 	"errors"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"strings"
+	"github.com/namsral/flag"
 )
 
 const StrategyDry = "DRYRUN"

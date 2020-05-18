@@ -65,6 +65,14 @@
   revision = "3864e76763d94a6df2f9960b16a20a33da9f9a66"
 
 [[projects]]
+  digest = "1:6221a3a452964b1ff30efdc22209b124d54d04373e5993264d3fa9b13da0659d"
+  name = "github.com/namsral/flag"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "71ceffbeb0ba60fccc853971bb3ed4d7d90bfd04"
+  version = "v1.7.4-pre"
+
+[[projects]]
   branch = "master"
   digest = "1:4daa045e1e1f3e23f4b07db6880cdf9f259dab65312dfe244a878e6070faaf77"
   name = "github.com/olekukonko/tablewriter"
@@ -316,6 +324,7 @@
   analyzer-version = 1
   input-imports = [
     "github.com/cbroglie/mustache",
+    "github.com/namsral/flag",
     "github.com/olekukonko/tablewriter",
     "github.com/onsi/gomega",
     "github.com/stretchr/testify/mock",
