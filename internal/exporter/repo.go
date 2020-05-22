@@ -48,7 +48,7 @@ func (e *exporter) downloadRepo() {
 			)
 		}
 
-		e.logger.PrintDebug(fmt.Sprintf("REPO: git directory openned: %s", e.config.GetRepoRootDir()))
+		e.logger.PrintDebug(fmt.Sprintf("REPO: git directory opened: %s", e.config.GetRepoRootDir()))
 	}
 
 	// We're still here, let's try to checkout required branch
