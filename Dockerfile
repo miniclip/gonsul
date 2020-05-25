@@ -1,6 +1,6 @@
 ARG GONSUL=/go/src/github.com/miniclip/gonsul
 
-FROM golang:1-alpine as build
+FROM golang:1.14.3-alpine3.11 as build
 ARG GONSUL
 
 RUN apk --no-cache add build-base dep git
