@@ -1,7 +1,7 @@
 package app
 
 import (
-	"github.com/miniclip/gonsul/internal/config"
+	"miniclip/gonsul/internal/config"
 
 	"fmt"
 	"os"

@@ -1,7 +1,7 @@
 package exporter
 
 import (
-	"github.com/miniclip/gonsul/internal/util"
+	"miniclip/gonsul/internal/util"
 
 	"errors"
 	"fmt"

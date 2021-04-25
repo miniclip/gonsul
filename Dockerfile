@@ -1,4 +1,4 @@
-ARG GONSUL=/go/src/github.com/miniclip/gonsul
+ARG GONSUL=/go/src/miniclip/gonsul
 
 FROM golang:1.14.3-alpine3.11 as build
 ARG GONSUL

@@ -5,8 +5,8 @@ package config
 //	"testing"
 //
 //	"fmt"
-//	"github.com/miniclip/gonsul/tests/mocks"
-//	"github.com/miniclip/gonsul/util"
+//	"miniclip/gonsul/tests/mocks"
+//	"miniclip/gonsul/util"
 //)
 //
 //func TestGetConfigSuccess(t *testing.T) {

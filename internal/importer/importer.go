@@ -1,9 +1,9 @@
 package importer
 
 import (
-	"github.com/miniclip/gonsul/internal/config"
-	"github.com/miniclip/gonsul/internal/entities"
-	"github.com/miniclip/gonsul/internal/util"
+	"miniclip/gonsul/internal/config"
+	"miniclip/gonsul/internal/entities"
+	"miniclip/gonsul/internal/util"
 
 	"encoding/json"
 	"errors"
