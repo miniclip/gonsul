@@ -23,8 +23,8 @@ build:
 mocks:
 	@echo "=== Generating mocks ==="
 	rm -rf ./tests/mocks/*.go
-	CGO_ENABLED=0 $(GOPATH)/bin/mockery -all -output ./tests/mocks -dir ./app/
-	CGO_ENABLED=0 $(GOPATH)/bin/mockery -all -output ./tests/mocks -dir ./internal/
+	CGO_ENABLED=0 $(GOPATH)/bin/mockery --all --output ./tests/mocks --dir ./app/
+	CGO_ENABLED=0 $(GOPATH)/bin/mockery --all --output ./tests/mocks --dir ./internal/
 	@echo "=== Done ==="
 
 # Validates the correct format of the code
