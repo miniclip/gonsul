@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+        "strconv"
 )
 
 type Ihook interface {
@@ -56,7 +57,7 @@ func (a *hook) httpHandler(response http.ResponseWriter, request *http.Request) 
 		if r := recover(); r != nil {
 			var recoveredError = r.(util.GonsulError)
 			response.WriteHeader(503)
-			response.Header().Add("X-Gonsul-Error", string(util.ErrorDeleteNotAllowed))
+			response.Header().Add("X-Gonsul-Error", strconv.Itoa(util.ErrorDeleteNotAllowed))
 			// Add delete paths(they wre added to logger messages) as comma separated string to the Header
 			response.Header().Add("X-Gonsul-Delete-Paths", strings.Join(logger.GetMessages(), ","))
 			_, _ = fmt.Fprintf(response, "Error: %d\n", recoveredError.Code)
