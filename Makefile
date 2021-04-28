@@ -13,27 +13,18 @@ BUILD_DATE=$(shell date -u +%Y%m%d.%H%M%S)
 # Setup the -ldflags option for go build here, interpolate the variable values
 LDFLAGS_APP=-ldflags "-X github.com/miniclip/gonsul/app.Version=${VERSION} -X github.com/miniclip/gonsul/app.BuildDate=${BUILD_DATE}"
 
-# Builds the project
-install: dependencies build
-
 # Builds the application
 build:
 	@echo "=== Building SRV ==="
 	go build ${LDFLAGS_APP} -a -installsuffix cgo -o ${APP_BINARY} ${APP}
 	@echo "=== Done ==="
 
-# Installs our project: runs Dep;
-dependencies:
-	@echo "=== Installing dependencies ==="
-	dep ensure -v
-	@echo "=== Done ==="
-
 # Generates the needed mocks
 mocks:
 	@echo "=== Generating mocks ==="
 	rm -rf ./tests/mocks/*.go
-	CGO_ENABLED=0 $(GOPATH)/bin/mockery -all -output ./tests/mocks -dir ./app/
-	CGO_ENABLED=0 $(GOPATH)/bin/mockery -all -output ./tests/mocks -dir ./internal/
+	CGO_ENABLED=0 $(GOPATH)/bin/mockery --all --output ./tests/mocks --dir ./app/
+	CGO_ENABLED=0 $(GOPATH)/bin/mockery --all --output ./tests/mocks --dir ./internal/
 	@echo "=== Done ==="
 
 # Validates the correct format of the code
