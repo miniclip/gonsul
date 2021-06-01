@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 )
 
 // createOperationMatrix ...
@@ -146,16 +147,16 @@ func (i *importer) printOperations(matrix entities.OperationMatrix, printWhat st
 	if matrix.GetTotalOps() > 0 {
 		// Instantiate our table and set table header
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"", "OPERATION NAME", "CONSUL VERB", "PATH"})
+		table.SetHeader([]string{"", "OP INDEX", "OPERATION NAME", "CONSUL VERB", "PATH"})
 		// Align our rows
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
 		// Loop each operation and add to table
-		for _, op := range matrix.GetOperations() {
+		for opIndex, op := range matrix.GetOperations() {
 			if printWhat == entities.OperationAll || printWhat == op.GetType() {
 				if op.GetType() == entities.OperationDelete {
-					table.Append([]string{"!!", op.GetType(), op.GetVerb(), op.GetPath()})
+					table.Append([]string{"!!", strconv.Itoa(opIndex), op.GetType(), op.GetVerb(), op.GetPath()})
 				} else {
-					table.Append([]string{"", op.GetType(), op.GetVerb(), op.GetPath()})
+					table.Append([]string{"", strconv.Itoa(opIndex), op.GetType(), op.GetVerb(), op.GetPath()})
 				}
 			}
 		}
