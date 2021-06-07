@@ -1,9 +1,10 @@
 package importer
 
 import (
+	"strings"
+
 	"github.com/miniclip/gonsul/internal/entities"
 	"github.com/miniclip/gonsul/internal/util"
-	"strings"
 
 	"github.com/cbroglie/mustache"
 	"github.com/olekukonko/tablewriter"
@@ -147,17 +148,56 @@ func (i *importer) printOperations(matrix entities.OperationMatrix, printWhat st
 	if matrix.GetTotalOps() > 0 {
 		// Instantiate our table and set table header
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"", "OP INDEX", "OPERATION NAME", "CONSUL VERB", "PATH"})
+		table.SetHeader([]string{"", "BATCH", "OP INDEX", "OPERATION NAME", "CONSUL VERB", "PATH"})
 		// Align our rows
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
+
+		// Initialize the batch counter
+		batch := 1
+		opIndex := 0
+
+		var transactions []entities.ConsulTxn
+		var newTransactions []entities.ConsulTxn
+
 		// Loop each operation and add to table
-		for opIndex, op := range matrix.GetOperations() {
+		for _, op := range matrix.GetOperations() {
+
 			if printWhat == entities.OperationAll || printWhat == op.GetType() {
+				var TxnKV entities.ConsulTxnKV
+				var warning string
+
+				// generate the actual payload to calculate it's lenght
+				verb := op.GetVerb()
+				path := op.GetPath()
 				if op.GetType() == entities.OperationDelete {
-					table.Append([]string{"!!", strconv.Itoa(opIndex), op.GetType(), op.GetVerb(), op.GetPath()})
+					warning = "!!"
+					TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path}
 				} else {
-					table.Append([]string{"", strconv.Itoa(opIndex), op.GetType(), op.GetVerb(), op.GetPath()})
+					warning = ""
+					val := op.GetValue()
+					TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
 				}
+
+				// add the next transaction and check payload lenght
+				newTransactions = transactions
+				newTransactions = append(newTransactions, entities.ConsulTxn{KV: TxnKV})
+				newPayloadSize := i.getTransactionsPayloadSize(&newTransactions)
+
+				// If the next transaction brings us over the maximum payload size,
+				// or the maximum transaction per batch limit is reached, start a new batch
+				if newPayloadSize > maximumPayloadSize || len(transactions) == consulTxnLimit {
+					// reset transactions and add the next transaction
+					transactions = []entities.ConsulTxn{}
+					// start a new batch counter
+					opIndex = 0
+					batch++
+				}
+
+				transactions = append(transactions, entities.ConsulTxn{KV: TxnKV})
+
+				table.Append([]string{warning, strconv.Itoa(batch), strconv.Itoa(opIndex), op.GetType(), op.GetVerb(), op.GetPath()})
+
+				opIndex++
 			}
 		}
 		// Outputs ASCII table
@@ -178,4 +218,14 @@ func (i *importer) setDeletesToLogger(matrix entities.OperationMatrix) {
 			}
 		}
 	}
+}
+
+// Get the payload size for a slice of transactions
+func (i *importer) getTransactionsPayloadSize(transactions *[]entities.ConsulTxn) int {
+	payload, err := json.Marshal(&transactions)
+	if err != nil {
+		util.ExitError(errors.New("Marshal: "+err.Error()), util.ErrorFailedJsonEncode, i.logger)
+	}
+
+	return len(string(payload))
 }
