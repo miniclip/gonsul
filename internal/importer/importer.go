@@ -5,7 +5,6 @@ import (
 	"github.com/miniclip/gonsul/internal/entities"
 	"github.com/miniclip/gonsul/internal/util"
 
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -41,11 +40,11 @@ func (i *importer) Start(localData map[string]string) {
 	// Create our operations Matrix
 	ops = i.createOperationMatrix(liveData, localData)
 
+	// Print operation table
+	i.printOperations(ops, entities.OperationAll)
 	// Check if it's a dry run
 	if i.config.GetStrategy() == config.StrategyDry {
-		// Print matrix and exit
-		i.printOperations(ops, entities.OperationAll)
-
+		// Exit after having printed the operations table
 		return
 	}
 
@@ -72,7 +71,11 @@ func (i *importer) processOperations(matrix entities.OperationMatrix) {
 		util.ExitError(errors.New(""), util.ErrorDeleteNotAllowed, i.logger)
 	}
 
+	// Initialize the batch counter
+	batch := 1
+
 	var transactions []entities.ConsulTxn
+	var newTransactions []entities.ConsulTxn
 
 	// Fill our channel to indicate a non interruptible work (It stops here if interruption in progress)
 	i.config.WorkingChan() <- true
@@ -84,12 +87,6 @@ func (i *importer) processOperations(matrix entities.OperationMatrix) {
 		verb := op.GetVerb()
 		path := op.GetPath()
 
-		currentPayload, err := json.Marshal(transactions)
-		if err != nil {
-			util.ExitError(errors.New("Marshal: "+err.Error()), util.ErrorFailedJsonEncode, i.logger)
-		}
-		currentPayloadSize := len(currentPayload)
-
 		var TxnKV entities.ConsulTxnKV
 
 		if op.GetType() == entities.OperationDelete {
@@ -99,32 +96,24 @@ func (i *importer) processOperations(matrix entities.OperationMatrix) {
 			TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
 		}
 
-		// If the next transaction brings us over the maximum payload size, flush the current transactions
-		nextOpPayload, err := json.Marshal(TxnKV)
-		if err != nil {
-			util.ExitError(errors.New("Marshal: "+err.Error()), util.ErrorFailedJsonEncode, i.logger)
-		}
+		// add the next transaction and check payload lenght
+		newTransactions = transactions
+		newTransactions = append(transactions, entities.ConsulTxn{KV: TxnKV})
+		newPayloadSize := i.getTransactionsPayloadSize(&newTransactions)
 
-		if currentPayloadSize+len(nextOpPayload) > maximumPayloadSize {
-			i.processConsulTransaction(transactions)
+		if newPayloadSize > maximumPayloadSize || len(transactions) == consulTxnLimit {
+			i.processConsulTransaction(transactions, batch)
 			transactions = []entities.ConsulTxn{}
+
+			batch++
 		}
 
 		transactions = append(transactions, entities.ConsulTxn{KV: TxnKV})
-
-		if len(transactions) == consulTxnLimit {
-			// Flush current transactions because we hit max operation per transaction
-			// One day Consul will release an API endpoint from where we can get this limit
-			// so we do can stop hardcoding this constant
-			i.processConsulTransaction(transactions)
-			// Reset our transaction array
-			transactions = []entities.ConsulTxn{}
-		}
 	}
 
 	// Do we have transactions to process
 	if len(transactions) > 0 {
-		i.processConsulTransaction(transactions)
+		i.processConsulTransaction(transactions, batch)
 	}
 
 	// Consume our channel, to re-allow application interruption
