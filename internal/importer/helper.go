@@ -169,13 +169,14 @@ func (i *importer) printOperations(matrix entities.OperationMatrix, printWhat st
 				// generate the actual payload to calculate it's lenght
 				verb := op.GetVerb()
 				path := op.GetPath()
+				namespace := i.config.GetConsulNameSpace()
 				if op.GetType() == entities.OperationDelete {
 					warning = "!!"
-					TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path}
+					TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path, Namespace: &namespace}
 				} else {
 					warning = ""
 					val := op.GetValue()
-					TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
+					TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val, Namespace: &namespace}
 				}
 
 				// add the next transaction and check payload lenght

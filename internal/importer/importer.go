@@ -86,14 +86,15 @@ func (i *importer) processOperations(matrix entities.OperationMatrix) {
 		// so we can clearly identify nil values, as in https://willnorris.com/2014/05/go-rest-apis-and-pointers
 		verb := op.GetVerb()
 		path := op.GetPath()
+		namespace := i.config.GetConsulNameSpace()
 
 		var TxnKV entities.ConsulTxnKV
 
 		if op.GetType() == entities.OperationDelete {
-			TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path}
+			TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path, Namespace: &namespace}
 		} else {
 			val := op.GetValue()
-			TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val}
+			TxnKV = entities.ConsulTxnKV{Verb: &verb, Key: &path, Value: &val, Namespace: &namespace}
 		}
 
 		// add the next transaction and check payload lenght

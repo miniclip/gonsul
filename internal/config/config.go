@@ -31,6 +31,7 @@ type config struct {
 	consulURL       string
 	consulACL       string
 	consulBasePath  string
+	consulNameSpace string
 	expandJSON      bool
 	expandYAML      bool
 	doSecrets       bool
@@ -60,6 +61,7 @@ type IConfig interface {
 	GetConsulURL() string
 	GetConsulACL() string
 	GetConsulBasePath() string
+	GetConsulNameSpace() string
 	ShouldExpandJSON() bool
 	ShouldExpandYAML() bool
 	DoSecrets() bool
@@ -155,6 +157,7 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 		consulURL:       *flags.ConsulURL,
 		consulACL:       *flags.ConsulACL,
 		consulBasePath:  *flags.ConsulBasePath,
+		consulNameSpace: *flags.ConsulNameSpace,
 		expandJSON:      *flags.ExpandJSON,
 		expandYAML:      *flags.ExpandYAML,
 		doSecrets:       doSecrets,
@@ -219,6 +222,10 @@ func (config *config) GetConsulACL() string {
 
 func (config *config) GetConsulBasePath() string {
 	return config.consulBasePath
+}
+
+func (config *config) GetConsulNameSpace() string {
+	return config.consulNameSpace
 }
 
 func (config *config) ShouldExpandJSON() bool {

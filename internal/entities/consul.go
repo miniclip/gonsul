@@ -20,6 +20,7 @@ type ConsulTxnKV struct {
 	Verb  *string `json:"Verb"`
 	Key   *string `json:"Key"`
 	Value *string `json:"Value,omitempty"`
+	Namespace *string `json:"Namespace,omitempty"`
 }
 
 
