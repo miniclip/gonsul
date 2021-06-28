@@ -104,6 +104,7 @@ environment variables (flag prefixed with "GONSUL_", converted to upper case, an
 --consul-url=
 --consul-acl=
 --consul-base-path=
+--consul-name-space=
 --log-level=
 --expand-json=
 --secrets-file=
@@ -250,6 +251,13 @@ This is the prefix for all generated keys that Gonsul will look at.
 
 **Note:** Remember that this base path **must not** be mirrored in the repository, as it will be automatically appended. 
 This is useful when the Consul cluster as all the KV paths segregated (namespaced) by teams or projects.
+
+
+### `--consul-name-space` 
+> `require:` **no**  
+> `example:` **`--consul-name-space=app-team`**
+
+This feature is available in [Enterprise Consul](https://learn.hashicorp.com/tutorials/consul/namespaces-share-datacenter-access) only. 
 
 
 ### `--log-level` 
