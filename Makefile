@@ -43,3 +43,17 @@ test: mocks fmt
 env:
 	@echo "=== Running Environment ==="
 	docker-compose up
+
+# Lint our root folder Markdown files
+MARKDOWNLINT := $(shell command -v markdownlint 2> /dev/null)
+markdownlint:
+ifdef MARKDOWNLINT
+	@for FILE in CONTRIBUTING.md LICENCE.md README.md ; do \
+		if test -f $$FILE ; then \
+			$(MARKDOWNLINT) -c markdownlint.config $$FILE ; \
+		fi \
+	done
+else
+	@echo "Not executing Markdown linting: 'markdownlint' (https://github.com/DavidAnson/markdownlint) not available"
+endif
+.PHONY: markdownlint
