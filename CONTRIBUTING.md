@@ -3,7 +3,7 @@
 1. [Licence](#licence)
 1. [Submitting a bug](#submitting-a-bug)
 1. [Requesting or implementing a feature](#requesting-or-implementing-a-feature)
-1. [Testing and submitting your changes](#submitting-your-changes)
+1. [Testing and submitting your changes](#testing-and-submitting-your-changes)
    1. [Code Style](#code-style)
    1. [Committing your changes](#committing-your-changes)
    1. [Pull requests and branching](#pull-requests-and-branching)
@@ -11,7 +11,7 @@
 
 ## Licence
 
-Gonsul is licenced under [The MIT LICENCE](LICENCE) for all code.
+Gonsul is licenced under [The MIT LICENCE](LICENCE.md) for all code.
 
 ## Submitting a Bug
 
