@@ -19,3 +19,8 @@ jobs:
           add_git_labels : true
           tag_with_ref   : true
           tag_with_sha   : true
+  checks:
+    run-on: 'ubuntu-latest'
+    steps:
+      - name: Lint Markdown files
+        run: make markdownlint
