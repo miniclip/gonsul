@@ -1,6 +1,7 @@
 # Gonsul - A Git to Consul tool, in Go
 
 ![Docker image](https://github.com/miniclip/gonsul/workflows/Docker%20image/badge.svg?branch=master)
+![Checks and tests](https://github.com/miniclip/gonsul/workflows/Checks%20and%20tests/badge.svg?branch=master)
 
 This tool serves as an entry point for the Hashicorp's Consul KV store. Not only because Consul
 lacks of a built in

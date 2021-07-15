@@ -1,0 +1,40 @@
+name: 'Checks and tests'
+
+on:
+  push:
+    branches:
+      - 'master'
+  pull_request:
+    branches:
+      - 'master'
+jobs:
+  checks:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Checkout repo
+        uses: 'actions/checkout@v2'
+      - name: Install Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16
+      - name: Install markdownlint
+        run: npm install -g markdownlint-cli
+      - name: Lint Markdown files
+        run: make markdownlint
+  tests:
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: Checkout repo
+        uses: 'actions/checkout@v2'
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '^1.16'
+      - name: Tests
+        run: make test
+      - name: Format
+        run: make fmt
+      - name: What's left behind (if anything)
+        run: git status
+      - name: Make sure nothing is left uncommitted
+        run: git diff --exit-code 1> /dev/null
