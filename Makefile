@@ -20,9 +20,11 @@ build:
 	@echo "=== Done ==="
 
 # Generates the needed mocks
+GOPATH?=${HOME}/go
 mocks:
 	@echo "=== Generating mocks ==="
 	rm -rf ./tests/mocks/*.go
+	go get github.com/vektra/mockery/v2/.../
 	CGO_ENABLED=0 $(GOPATH)/bin/mockery --all --output ./tests/mocks --dir ./app/
 	CGO_ENABLED=0 $(GOPATH)/bin/mockery --all --output ./tests/mocks --dir ./internal/
 	@echo "=== Done ==="
