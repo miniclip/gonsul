@@ -253,13 +253,6 @@ This is the prefix for all generated keys that Gonsul will look at.
 This is useful when the Consul cluster as all the KV paths segregated (namespaced) by teams or projects.
 
 
-### `--consul-name-space` 
-> `require:` **no**  
-> `example:` **`--consul-name-space=app-team`**
-
-This feature is available in [Enterprise Consul](https://learn.hashicorp.com/tutorials/consul/namespaces-share-datacenter-access) only. 
-
-
 ### `--log-level` 
 > `require:` **no**  
 > `default:` **ERROR**  
