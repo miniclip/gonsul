@@ -174,7 +174,7 @@ This specifies a file with configuration settings for the options described belo
 
 This defines the mode that **Gonsul** should run at, having the following strategies:
 
-- **`DRYRUN`** In this mode it will process the repository/folder and will __output only__ the
+- **`DRYRUN`** In this mode it will process the repository/folder and will **output only** the
 different operations it
 would run, such as: inserts, updates and deletes
 - **`ONCE`** In this mode it will process the repository/folder and will proceed with all the
@@ -439,10 +439,10 @@ removed files from the repo and/or files added directly on consul k/v will be de
 sync/push files to consul k/v path (can lead to inconsistencies at the consul k/v path since removed
 files from the repo and/or files added directly on consul k/v will stay in the consul path because
 we are skipping deletions).
-- **`false`** _this is the default mode_ and Gonsul will not proceed with the deletes, and depending
+- **`false`** *this is the default mode* and Gonsul will not proceed with the deletes, and depending
 on the `--strategy` it is running at, will respond with some different behaviors, such as:
 
-    1. **`ONCE`** When running in once mode, Gonsul will terminate with __error code 10__ and output
+    1. **`ONCE`** When running in once mode, Gonsul will terminate with **error code 10** and output
     to console all the Consul KV paths that are supposed to be deleted.
 
     2. **`HOOK`** Gonsul will repond to the HTTP request with error 503 and will also return the
