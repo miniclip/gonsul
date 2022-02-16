@@ -7,7 +7,7 @@ APP=cmd/gonsul.go
 APP_BINARY=bin/gonsul
 
 # These are the values we want to pass for VERSION
-VERSION=$(shell git describe --abbrev=6 --always --tags)
+VERSION=$(shell git describe --abbrev=0 --always --tags)
 BUILD_DATE=$(shell date -u +%Y%m%d.%H%M%S)
 
 # Setup the -ldflags option for go build here, interpolate the variable values
