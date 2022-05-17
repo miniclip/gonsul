@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/namsral/flag"
 	"io/ioutil"
 	"os"
 	"strings"
-	"github.com/namsral/flag"
 )
 
 const StrategyDry = "DRYRUN"
@@ -18,30 +18,31 @@ const StrategyPoll = "POLL"
 const StrategyHook = "HOOK"
 
 type config struct {
-	shouldClone     bool
-	logLevel        int
-	strategy        string
-	repoUrl         string
-	repoSSHKey      string
-	repoSSHUser     string
-	repoBranch      string
-	repoRemoteName  string
-	repoBasePath    string
-	repoRootDir     string
-	consulURL       string
-	consulACL       string
-	consulBasePath  string
-	expandJSON      bool
-	expandYAML      bool
-	doSecrets       bool
-	secretsMap      map[string]string
-	allowDeletes    string
-	pollInterval    int
-	Working         chan bool
-	validExtensions []string
-	keepFileExt     bool
-	timeout         int
-	version         bool
+	shouldClone              bool
+	logLevel                 int
+	strategy                 string
+	repoUrl                  string
+	repoSSHKey               string
+	repoSSHUser              string
+	repoBranch               string
+	repoRemoteName           string
+	repoBasePath             string
+	repoRootDir              string
+	consulURL                string
+	consulInsecureSkipVerify bool
+	consulACL                string
+	consulBasePath           string
+	expandJSON               bool
+	expandYAML               bool
+	doSecrets                bool
+	secretsMap               map[string]string
+	allowDeletes             string
+	pollInterval             int
+	Working                  chan bool
+	validExtensions          []string
+	keepFileExt              bool
+	timeout                  int
+	version                  bool
 }
 
 // IConfig is our config interface, implemented by our config struct above. It allows
@@ -58,6 +59,7 @@ type IConfig interface {
 	GetRepoBasePath() string
 	GetRepoRootDir() string
 	GetConsulURL() string
+	GetConsulInsecureSkipVerify() bool
 	GetConsulACL() string
 	GetConsulBasePath() string
 	ShouldExpandJSON() bool
@@ -142,30 +144,31 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 	}
 
 	return &config{
-		shouldClone:     clone,
-		logLevel:        errorLevel,
-		strategy:        strategy,
-		repoUrl:         *flags.RepoURL,
-		repoSSHKey:      *flags.RepoSSHKey,
-		repoSSHUser:     *flags.RepoSSHUser,
-		repoBranch:      *flags.RepoBranch,
-		repoRemoteName:  *flags.RepoRemoteName,
-		repoBasePath:    *flags.RepoBasePath,
-		repoRootDir:     *flags.RepoRootDir,
-		consulURL:       *flags.ConsulURL,
-		consulACL:       *flags.ConsulACL,
-		consulBasePath:  *flags.ConsulBasePath,
-		expandJSON:      *flags.ExpandJSON,
-		expandYAML:      *flags.ExpandYAML,
-		doSecrets:       doSecrets,
-		secretsMap:      secrets,
-		allowDeletes:    *flags.AllowDeletes,
-		pollInterval:    *flags.PollInterval,
-		Working:         make(chan bool, 1),
-		validExtensions: extensions,
-		keepFileExt:     *flags.KeepFileExt,
-		timeout:         *flags.Timeout,
-		version:         *flags.Version,
+		shouldClone:              clone,
+		logLevel:                 errorLevel,
+		strategy:                 strategy,
+		repoUrl:                  *flags.RepoURL,
+		repoSSHKey:               *flags.RepoSSHKey,
+		repoSSHUser:              *flags.RepoSSHUser,
+		repoBranch:               *flags.RepoBranch,
+		repoRemoteName:           *flags.RepoRemoteName,
+		repoBasePath:             *flags.RepoBasePath,
+		repoRootDir:              *flags.RepoRootDir,
+		consulURL:                *flags.ConsulURL,
+		consulInsecureSkipVerify: *flags.ConsulInsecureSkipVerify,
+		consulACL:                *flags.ConsulACL,
+		consulBasePath:           *flags.ConsulBasePath,
+		expandJSON:               *flags.ExpandJSON,
+		expandYAML:               *flags.ExpandYAML,
+		doSecrets:                doSecrets,
+		secretsMap:               secrets,
+		allowDeletes:             *flags.AllowDeletes,
+		pollInterval:             *flags.PollInterval,
+		Working:                  make(chan bool, 1),
+		validExtensions:          extensions,
+		keepFileExt:              *flags.KeepFileExt,
+		timeout:                  *flags.Timeout,
+		version:                  *flags.Version,
 	}, nil
 }
 
@@ -215,6 +218,10 @@ func (config *config) GetConsulURL() string {
 
 func (config *config) GetConsulACL() string {
 	return config.consulACL
+}
+
+func (config *config) GetConsulInsecureSkipVerify() bool {
+	return config.consulInsecureSkipVerify
 }
 
 func (config *config) GetConsulBasePath() string {

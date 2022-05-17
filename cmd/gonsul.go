@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/tls"
 	"github.com/miniclip/gonsul/app"
 	"github.com/miniclip/gonsul/internal/config"
 	"github.com/miniclip/gonsul/internal/exporter"
@@ -43,7 +44,11 @@ func start() {
 
 	// Build all dependencies for our application
 	hookHttpServer := app.NewHookHttp(cfg, logger)
-	httpClient := &http.Client{Timeout: time.Second * time.Duration(cfg.GetTimeout())}
+
+	customTransport := &(*http.DefaultTransport.(*http.Transport)) // make shallow copy
+	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: cfg.GetConsulInsecureSkipVerify()}
+	httpClient := &http.Client{Transport: customTransport, Timeout: time.Second * time.Duration(cfg.GetTimeout())}
+
 	exp := exporter.NewExporter(cfg, logger)
 	imp := importer.NewImporter(cfg, logger, httpClient)
 	sigChannel := make(chan os.Signal)
