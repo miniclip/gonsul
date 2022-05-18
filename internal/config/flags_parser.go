@@ -8,28 +8,28 @@ import (
 )
 
 type ConfigFlags struct {
-	LogLevel                 *string
-	Strategy                 *string
-	RepoURL                  *string
-	RepoSSHKey               *string
-	RepoSSHUser              *string
-	RepoBranch               *string
-	RepoRemoteName           *string
-	RepoBasePath             *string
-	RepoRootDir              *string
-	ConsulURL                *string
-	ConsulInsecureSkipVerify *bool
-	ConsulACL                *string
-	ConsulBasePath           *string
-	ExpandJSON               *bool
-	ExpandYAML               *bool
-	SecretsFile              *string
-	AllowDeletes             *string
-	PollInterval             *int
-	ValidExtensions          *string
-	KeepFileExt              *bool
-	Timeout                  *int
-	Version                  *bool
+	LogLevel                     *string
+	Strategy                     *string
+	RepoURL                      *string
+	RepoSSHKey                   *string
+	RepoSSHUser                  *string
+	RepoBranch                   *string
+	RepoRemoteName               *string
+	RepoBasePath                 *string
+	RepoRootDir                  *string
+	ConsulURL                    *string
+	SkipTlsCertificateValidation *bool
+	ConsulACL                    *string
+	ConsulBasePath               *string
+	ExpandJSON                   *bool
+	ExpandYAML                   *bool
+	SecretsFile                  *string
+	AllowDeletes                 *string
+	PollInterval                 *int
+	ValidExtensions              *string
+	KeepFileExt                  *bool
+	Timeout                      *int
+	Version                      *bool
 }
 
 func parseFlags() ConfigFlags {
@@ -49,9 +49,9 @@ func parseFlags() ConfigFlags {
 	flags.RepoBasePath = flag.String("repo-base-path", "/", "The base directory to look from inside the repo")
 	flags.RepoRootDir = flag.String("repo-root", "/tmp/gonsul/repo", "The path where the repo will be downloaded to")
 	flags.ConsulURL = flag.String("consul-url", "", "(REQUIRED) The Consul URL REST API endpoint (Full URL with scheme)")
-	flags.ConsulInsecureSkipVerify = flag.Bool("consul-insecure-skip-verify", false, "Ignore insecure Consul TLS certificate")
 	flags.ConsulACL = flag.String("consul-acl", "", "The Consul ACL to use (Must have write on the KV following --consul-base path)")
 	flags.ConsulBasePath = flag.String("consul-base-path", "", "The base KV path will be prefixed to dir path")
+	flags.SkipTlsCertificateValidation = flag.Bool("skip-tls-certificate-validation", false, "Ignore insecure TLS certificate")
 	flags.ExpandJSON = flag.Bool("expand-json", false, "Expand and parse JSON files as full paths? (Default false)")
 	flags.ExpandYAML = flag.Bool("expand-yaml", false, "Expand and parse YAML files as full paths? (Default false)")
 	flags.SecretsFile = flag.String("secrets-file", "", "A key value json file with placeholders->secrets mapping, in order to do on the fly replace")

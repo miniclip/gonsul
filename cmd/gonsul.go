@@ -46,7 +46,7 @@ func start() {
 	hookHttpServer := app.NewHookHttp(cfg, logger)
 
 	customTransport := &(*http.DefaultTransport.(*http.Transport)) // make shallow copy
-	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: cfg.GetConsulInsecureSkipVerify()}
+	customTransport.TLSClientConfig = &tls.Config{InsecureSkipVerify: cfg.GetSkipInsecureCertificateValidation()}
 	httpClient := &http.Client{Transport: customTransport, Timeout: time.Second * time.Duration(cfg.GetTimeout())}
 
 	exp := exporter.NewExporter(cfg, logger)
