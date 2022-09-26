@@ -41,12 +41,11 @@ func (e *exporter) parseDir(directory string, localData map[string]string) {
 
 // isExtensionValid checks if given file extensions is valid for processing
 func (e *exporter) isExtensionValid(extension string) bool {
-	return true
-	// for _, validExtension := range e.config.GetValidExtensions() {
-	// 	if strings.Trim(extension, ".") == strings.Trim(validExtension, ".") {
-	// 		return true
-	// 	}
-	// }
+	for _, validExtension := range e.config.GetValidExtensions() {
+		if strings.Trim(extension, ".") == strings.Trim(validExtension, ".") {
+			return true
+		}
+	}
 
 	// return false
 }
