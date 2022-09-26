@@ -34,6 +34,7 @@ func (a *read) RunRead() {
 		a.logger.PrintError("Bug on strategy READ")
 		return
 	}
+
 	var localData = map[string]string{}
 	a.logger.PrintDebug("Starting reading data fromConsul")
 	a.importer.Start(localData)

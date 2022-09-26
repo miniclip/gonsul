@@ -64,6 +64,7 @@ func (i *importer) exportToFile(filePath string, data map[string]string, base64E
 				return fmt.Errorf("error decoding key to %s err=%v", key, err)
 			}
 			decodedStr := strings.Replace(string(decodedValue), "\n", "\n+", -1)
+			decodedStr = strings.Replace(decodedStr, "\r\n+", "\nr+", -1)
 			saveStr = key + "=" + decodedStr
 		}
 		_, err := f.WriteString(saveStr)

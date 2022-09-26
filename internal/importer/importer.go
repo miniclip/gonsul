@@ -36,6 +36,10 @@ func (i *importer) Start(localData map[string]string) {
 	// Populate our Consul live data
 	liveData := i.createLiveData()
 
+	if i.config.GetStrategy() == config.StrategyRead && i.config.GetOutputDir() == "" && i.config.GetOutputFile() == "" {
+		util.ExitError(errors.New("undefined output-dir or output-file"), util.ErrorWrite, i.logger)
+	}
+
 	if i.config.GetOutputDir() != "" {
 		if err := i.exportToDirectory(i.config.GetOutputDir(), liveData); err != nil {
 			util.ExitError(errors.New(err.Error()), util.ErrorWrite, i.logger)
@@ -55,7 +59,7 @@ func (i *importer) Start(localData map[string]string) {
 	ops = i.createOperationMatrix(liveData, localData)
 
 	// Print operation table
-	i.printOperations(ops, entities.OperationAll)
+	i.printOperations(ops, entities.OperationAll, i.config.GetPrintValues())
 	// Check if it's a dry run
 	if i.config.GetStrategy() == config.StrategyDry {
 		// Exit after having printed the operations table
@@ -80,7 +84,7 @@ func (i *importer) processOperations(matrix entities.OperationMatrix) {
 		if i.config.GetStrategy() == config.StrategyHook {
 			i.setDeletesToLogger(matrix)
 		} else {
-			i.printOperations(matrix, entities.OperationDelete)
+			i.printOperations(matrix, entities.OperationDelete, i.config.GetPrintValues())
 		}
 		util.ExitError(errors.New(""), util.ErrorDeleteNotAllowed, i.logger)
 	}

@@ -141,7 +141,7 @@ func (i *importer) createLiveData() map[string]string {
 }
 
 // printOperations ...
-func (i *importer) printOperations(matrix entities.OperationMatrix, printWhat string) {
+func (i *importer) printOperations(matrix entities.OperationMatrix, printWhat string, printValue bool) {
 	// Add a new line before the table
 	fmt.Println()
 	// Let's make sure there are any operation
@@ -194,7 +194,10 @@ func (i *importer) printOperations(matrix entities.OperationMatrix, printWhat st
 				}
 
 				transactions = append(transactions, entities.ConsulTxn{KV: TxnKV})
-				opValue := i.decodeOpValue(op.GetValue())
+				opValue := ""
+				if printValue {
+					opValue = i.decodeOpValue(op.GetValue())
+				}
 				table.Append([]string{warning, strconv.Itoa(batch), strconv.Itoa(opIndex), op.GetType(), op.GetVerb(), op.GetPath(), opValue})
 
 				opIndex++

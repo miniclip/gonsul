@@ -47,6 +47,7 @@ type config struct {
 	outputFile      string
 	outputDir       string
 	paths           []string
+	printValues     bool
 }
 
 // IConfig is our config interface, implemented by our config struct above. It allows
@@ -79,6 +80,7 @@ type IConfig interface {
 	GetOutputFile() string
 	GetOutputDir() string
 	GetPaths() []string
+	GetPrintValues() bool
 }
 
 // NewConfig is our config struct constructor.
@@ -179,6 +181,7 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 		outputFile:      *flags.OutputFile,
 		outputDir:       *flags.OutputDir,
 		paths:           paths,
+		printValues:     *flags.PrintValues,
 	}, nil
 }
 
@@ -290,6 +293,9 @@ func (config *config) GetPaths() []string {
 	return config.paths
 }
 
+func (config *config) GetPrintValues() bool {
+	return config.printValues
+}
 func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string, error) {
 	var file = secretsFile
 	if _, err := os.Stat(file); os.IsNotExist(err) {

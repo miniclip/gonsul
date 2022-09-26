@@ -144,7 +144,6 @@ func (e *exporter) loadDictFile(filePath string, localData map[string]string, b6
 	for scanner.Scan() {
 		aline := scanner.Text()
 		lineCnt++
-		aline = strings.TrimSpace(aline)
 		if len(aline) <= 0 {
 			continue
 		}
@@ -152,8 +151,12 @@ func (e *exporter) loadDictFile(filePath string, localData map[string]string, b6
 		if strings.HasPrefix(aline, "#") {
 			continue
 		}
-
-		if strings.HasPrefix(aline, "+") && (len(aline) > 1) && (lastKey > "") {
+		if strings.HasPrefix(aline, "r+") && (len(aline) >= 1) && (lastKey > "") {
+			appendVal := aline[2:]
+			localData[lastKey] = localData[lastKey] + "\r\n" + appendVal
+			continue
+		}
+		if strings.HasPrefix(aline, "+") && (len(aline) >= 1) && (lastKey > "") {
 			appendVal := aline[1:]
 			localData[lastKey] = localData[lastKey] + "\n" + appendVal
 			continue
