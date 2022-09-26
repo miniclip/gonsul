@@ -46,6 +46,7 @@ type config struct {
 	version         bool
 	outputFile      string
 	outputDir       string
+	paths           []string
 }
 
 // IConfig is our config interface, implemented by our config struct above. It allows
@@ -77,6 +78,7 @@ type IConfig interface {
 	IsShowVersion() bool
 	GetOutputFile() string
 	GetOutputDir() string
+	GetPaths() []string
 }
 
 // NewConfig is our config struct constructor.
@@ -112,6 +114,8 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	paths := strings.Split(*flags.Paths, ",")
 
 	// Make sure strategy is properly given
 	strategy := strings.ToUpper(*flags.Strategy)
@@ -174,6 +178,7 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 		version:         *flags.Version,
 		outputFile:      *flags.OutputFile,
 		outputDir:       *flags.OutputDir,
+		paths:           paths,
 	}, nil
 }
 
@@ -279,6 +284,10 @@ func (config *config) GetOutputFile() string {
 
 func (config *config) GetOutputDir() string {
 	return config.outputDir
+}
+
+func (config *config) GetPaths() []string {
+	return config.paths
 }
 
 func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string, error) {

@@ -32,6 +32,7 @@ type ConfigFlags struct {
 	Version         *bool
 	OutputFile      *string
 	OutputDir       *string
+	Paths           *string
 }
 
 func parseFlags() ConfigFlags {
@@ -64,6 +65,7 @@ func parseFlags() ConfigFlags {
 	flags.Version = flag.Bool("v", false, "Will show the Gonsul version")
 	flags.OutputFile = flag.String("output-file", "data.txt", "File to write the existing values in Consul")
 	flags.OutputDir = flag.String("output-dir", "data", "Directory to write the existing values in Consul")
+	flags.Paths = flag.String("paths", "", "A comma separated list of files/directories to overwrite as input. The last overwrites the first")
 	// Parse our command line flags
 	flag.Parse()
 

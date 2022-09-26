@@ -1,6 +1,7 @@
 package exporter
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/miniclip/gonsul/internal/config"
@@ -42,15 +43,20 @@ func (e *exporter) Start() map[string]string {
 	repoDir := path.Join(e.config.GetRepoRootDir(), e.config.GetRepoBasePath())
 	// Traverse our repo directory, filling up the data.EntryCollection structure
 
-	fileInfo, err := os.Stat(repoDir)
-	if err != nil {
-		panic(err)
+	for _, fileName := range e.config.GetPaths() {
+		filePath := path.Join(repoDir, fileName)
+		fmt.Printf("Importing: %s\n", filePath)
+		fileInfo, err := os.Stat(filePath)
+		if err != nil {
+			panic(err)
+		}
+		if fileInfo.IsDir() {
+			e.parseDir(repoDir, localData)
+		} else {
+			e.loadDictFile(repoDir, localData, false)
+		}
 	}
-	if fileInfo.IsDir() {
-		e.parseDir(repoDir, localData)
-	} else {
-		e.loadDictFile(repoDir, localData, false)
-	}
+
 	// Return our final data.EntryCollection structure
 	return localData
 }
