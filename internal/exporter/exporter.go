@@ -1,6 +1,8 @@
 package exporter
 
 import (
+	"fmt"
+
 	"github.com/miniclip/gonsul/internal/config"
 	"github.com/miniclip/gonsul/internal/util"
 
@@ -40,6 +42,11 @@ func (e *exporter) Start() map[string]string {
 	repoDir := path.Join(e.config.GetRepoRootDir(), e.config.GetRepoBasePath())
 	// Traverse our repo directory, filling up the data.EntryCollection structure
 	e.parseDir(repoDir, localData)
+
+	var localData2 = map[string]string{}
+	filePath := "data.txt"
+	e.loadDictFile(filePath, localData2, false)
+	fmt.Println(localData2)
 
 	// Return our final data.EntryCollection structure
 	return localData

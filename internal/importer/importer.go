@@ -41,6 +41,10 @@ func (i *importer) Start(localData map[string]string) {
 	if err != nil {
 		panic(err)
 	}
+	err = i.exportToFile("data.txt", liveData, false)
+	if err != nil {
+		panic(err)
+	}
 
 	// Create our operations Matrix
 	ops = i.createOperationMatrix(liveData, localData)
