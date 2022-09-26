@@ -38,12 +38,12 @@ func (i *importer) Start(localData map[string]string) {
 
 	if i.config.GetOutputDir() != "" {
 		if err := i.exportToDirectory(i.config.GetOutputDir(), liveData); err != nil {
-			panic(err)
+			util.ExitError(errors.New(err.Error()), util.ErrorWrite, i.logger)
 		}
 	}
 	if i.config.GetOutputFile() != "" {
 		if err := i.exportToFile(i.config.GetOutputFile(), liveData, false); err != nil {
-			panic(err)
+			util.ExitError(errors.New(err.Error()), util.ErrorWrite, i.logger)
 		}
 	}
 	// Check if it's read-only

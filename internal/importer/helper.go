@@ -148,7 +148,7 @@ func (i *importer) printOperations(matrix entities.OperationMatrix, printWhat st
 	if matrix.GetTotalOps() > 0 {
 		// Instantiate our table and set table header
 		table := tablewriter.NewWriter(os.Stdout)
-		table.SetHeader([]string{"", "BATCH", "OP INDEX", "OPERATION NAME", "CONSUL VERB", "PATH"})
+		table.SetHeader([]string{"", "BATCH", "OP INDEX", "OPERATION NAME", "CONSUL VERB", "PATH", "VALUE"})
 		// Align our rows
 		table.SetAlignment(tablewriter.ALIGN_LEFT)
 
@@ -194,8 +194,8 @@ func (i *importer) printOperations(matrix entities.OperationMatrix, printWhat st
 				}
 
 				transactions = append(transactions, entities.ConsulTxn{KV: TxnKV})
-
-				table.Append([]string{warning, strconv.Itoa(batch), strconv.Itoa(opIndex), op.GetType(), op.GetVerb(), op.GetPath()})
+				opValue := i.decodeOpValue(op.GetValue())
+				table.Append([]string{warning, strconv.Itoa(batch), strconv.Itoa(opIndex), op.GetType(), op.GetVerb(), op.GetPath(), opValue})
 
 				opIndex++
 			}
@@ -205,6 +205,17 @@ func (i *importer) printOperations(matrix entities.OperationMatrix, printWhat st
 	} else {
 		i.logger.PrintInfo("No operations to process, all synced")
 	}
+}
+
+func (i *importer) decodeOpValue(opValue string) string {
+	if opValue == "" {
+		return opValue
+	}
+	decodedValue, err := base64.StdEncoding.DecodeString(opValue)
+	if err != nil {
+		util.ExitError(errors.New(err.Error()), util.ErrorRead, i.logger)
+	}
+	return string(decodedValue)
 }
 
 // setDeletesToLogger ...

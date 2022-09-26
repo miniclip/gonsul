@@ -1,6 +1,7 @@
 package exporter
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -48,12 +49,12 @@ func (e *exporter) Start() map[string]string {
 		fmt.Printf("Importing: %s\n", filePath)
 		fileInfo, err := os.Stat(filePath)
 		if err != nil {
-			panic(err)
+			util.ExitError(errors.New(err.Error()), util.ErrorRead, e.logger)
 		}
 		if fileInfo.IsDir() {
-			e.parseDir(repoDir, localData)
+			e.parseDir(filePath, localData)
 		} else {
-			e.loadDictFile(repoDir, localData, false)
+			e.loadDictFile(filePath, localData, false)
 		}
 	}
 
