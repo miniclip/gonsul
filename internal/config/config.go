@@ -44,6 +44,8 @@ type config struct {
 	keepFileExt     bool
 	timeout         int
 	version         bool
+	outputFile      string
+	outputDir       string
 }
 
 // IConfig is our config interface, implemented by our config struct above. It allows
@@ -73,6 +75,8 @@ type IConfig interface {
 	KeepFileExt() bool
 	GetTimeout() int
 	IsShowVersion() bool
+	GetOutputFile() string
+	GetOutputDir() string
 }
 
 // NewConfig is our config struct constructor.
@@ -168,6 +172,8 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 		keepFileExt:     *flags.KeepFileExt,
 		timeout:         *flags.Timeout,
 		version:         *flags.Version,
+		outputFile:      *flags.OutputFile,
+		outputDir:       *flags.OutputDir,
 	}, nil
 }
 
@@ -265,6 +271,14 @@ func (config *config) GetTimeout() int {
 
 func (config *config) IsShowVersion() bool {
 	return config.version
+}
+
+func (config *config) GetOutputFile() string {
+	return config.outputFile
+}
+
+func (config *config) GetOutputDir() string {
+	return config.outputDir
 }
 
 func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string, error) {

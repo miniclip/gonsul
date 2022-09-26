@@ -32,20 +32,20 @@ func (i *importer) Start(localData map[string]string) {
 
 	// Create some local variables
 	var ops entities.OperationMatrix
-	var liveData map[string]string
 
 	// Populate our Consul live data
-	liveData = i.createLiveData()
+	liveData := i.createLiveData()
 
-	err := i.exportToDirectory("data", liveData)
-	if err != nil {
-		panic(err)
+	if i.config.GetOutputDir() != "" {
+		if err := i.exportToDirectory(i.config.GetOutputDir(), liveData); err != nil {
+			panic(err)
+		}
 	}
-	err = i.exportToFile("data.txt", liveData, false)
-	if err != nil {
-		panic(err)
+	if i.config.GetOutputFile() != "" {
+		if err := i.exportToFile(i.config.GetOutputFile(), liveData, false); err != nil {
+			panic(err)
+		}
 	}
-
 	// Check if it's read-only
 	if i.config.GetStrategy() == config.StrategyRead {
 		return

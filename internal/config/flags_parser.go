@@ -30,6 +30,8 @@ type ConfigFlags struct {
 	KeepFileExt     *bool
 	Timeout         *int
 	Version         *bool
+	OutputFile      *string
+	OutputDir       *string
 }
 
 func parseFlags() ConfigFlags {
@@ -60,7 +62,8 @@ func parseFlags() ConfigFlags {
 	flags.KeepFileExt = flag.Bool("keep-ext", false, "Do we want to keep file name extensions ? (If not set to true defaults by ommiting the file name extension.) (Default false)")
 	flags.Timeout = flag.Int("timeout", 5, "The number of seconds for the client to wait for a response from Consul")
 	flags.Version = flag.Bool("v", false, "Will show the Gonsul version")
-
+	flags.OutputFile = flag.String("output-file", "data.txt", "File to write the existing values in Consul")
+	flags.OutputDir = flag.String("output-dir", "data", "Directory to write the existing values in Consul")
 	// Parse our command line flags
 	flag.Parse()
 
