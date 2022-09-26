@@ -37,6 +37,11 @@ func (i *importer) Start(localData map[string]string) {
 	// Populate our Consul live data
 	liveData = i.createLiveData()
 
+	err := i.exportToDirectory("data", liveData)
+	if err != nil {
+		panic(err)
+	}
+
 	// Create our operations Matrix
 	ops = i.createOperationMatrix(liveData, localData)
 

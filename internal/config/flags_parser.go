@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+
 	"github.com/miniclip/gonsul/internal/util"
 	"github.com/namsral/flag"
 )
