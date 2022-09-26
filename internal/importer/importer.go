@@ -46,6 +46,11 @@ func (i *importer) Start(localData map[string]string) {
 		panic(err)
 	}
 
+	// Check if it's read-only
+	if i.config.GetStrategy() == config.StrategyRead {
+		return
+	}
+
 	// Create our operations Matrix
 	ops = i.createOperationMatrix(liveData, localData)
 

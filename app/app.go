@@ -54,7 +54,7 @@ func (a *Application) Start() {
 
 	// Switch our run strategy
 	switch a.config.GetStrategy() {
-	case config.StrategyDry, config.StrategyOnce:
+	case config.StrategyDry, config.StrategyRead, config.StrategyOnce:
 		a.once.RunOnce()
 	case config.StrategyHook:
 		a.hook.RunHook()

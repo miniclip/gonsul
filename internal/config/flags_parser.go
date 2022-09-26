@@ -40,7 +40,7 @@ func parseFlags() ConfigFlags {
 	flag.String(flag.DefaultConfigFlagname, "", "The path to a configuration file")
 
 	flags.LogLevel = flag.String("log-level", util.LogErr, fmt.Sprintf("The desired log level (%s, %s, %s)", util.LogErr, util.LogInfo, util.LogDebug))
-	flags.Strategy = flag.String("strategy", StrategyOnce, fmt.Sprintf("The Gonsul operation mode (%s, %s, %s, %s)", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
+	flags.Strategy = flag.String("strategy", StrategyOnce, fmt.Sprintf("The Gonsul operation mode (%s, %s, %s, %s, %s)", StrategyRead, StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
 	flags.RepoURL = flag.String("repo-url", "", "The repository URL (Full URL with scheme)")
 	flags.RepoSSHKey = flag.String("repo-ssh-key", "", "The SSH private key location (Full path)")
 	flags.RepoSSHUser = flag.String("repo-ssh-user", "git", "The SSH user name")

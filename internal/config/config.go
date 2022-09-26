@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+
 	"github.com/namsral/flag"
 )
 
@@ -16,6 +17,7 @@ const StrategyDry = "DRYRUN"
 const StrategyOnce = "ONCE"
 const StrategyPoll = "POLL"
 const StrategyHook = "HOOK"
+const StrategyRead = "READ"
 
 type config struct {
 	shouldClone     bool
@@ -109,8 +111,8 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 
 	// Make sure strategy is properly given
 	strategy := strings.ToUpper(*flags.Strategy)
-	if strategy != StrategyDry && strategy != StrategyOnce && strategy != StrategyPoll && strategy != StrategyHook {
-		return nil, errors.New(fmt.Sprintf("strategy invalid, must be one of: %s, %s, %s, %s", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
+	if strategy != StrategyDry && strategy != StrategyOnce && strategy != StrategyPoll && strategy != StrategyHook && strategy != StrategyRead {
+		return nil, errors.New(fmt.Sprintf("strategy invalid, must be one of: %s, %s, %s, %s", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook, StrategyRead))
 	}
 
 	// Make sure delete method is properly given

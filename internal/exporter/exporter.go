@@ -1,7 +1,7 @@
 package exporter
 
 import (
-	"fmt"
+	"os"
 
 	"github.com/miniclip/gonsul/internal/config"
 	"github.com/miniclip/gonsul/internal/util"
@@ -41,13 +41,16 @@ func (e *exporter) Start() map[string]string {
 	// Set the path where Gonsul should start traversing files to add to Consul
 	repoDir := path.Join(e.config.GetRepoRootDir(), e.config.GetRepoBasePath())
 	// Traverse our repo directory, filling up the data.EntryCollection structure
-	e.parseDir(repoDir, localData)
 
-	var localData2 = map[string]string{}
-	filePath := "data.txt"
-	e.loadDictFile(filePath, localData2, false)
-	fmt.Println(localData2)
-
+	fileInfo, err := os.Stat(repoDir)
+	if err != nil {
+		panic(err)
+	}
+	if fileInfo.IsDir() {
+		e.parseDir(repoDir, localData)
+	} else {
+		e.loadDictFile(repoDir, localData, false)
+	}
 	// Return our final data.EntryCollection structure
 	return localData
 }

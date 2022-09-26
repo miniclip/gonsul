@@ -3,3 +3,5 @@ bin
 vendor
 tests/mocks/*
 !tests/mocks/.gitkeep
+data/
+data.txt
