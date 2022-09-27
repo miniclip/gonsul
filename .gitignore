@@ -6,3 +6,4 @@ tests/mocks/*
 data/
 *.txt
 import.sh
+secrets.json
