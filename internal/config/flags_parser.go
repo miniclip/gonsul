@@ -20,6 +20,7 @@ type ConfigFlags struct {
 	ConsulURL       *string
 	ConsulACL       *string
 	ConsulBasePath  *string
+	ConsulNameSpace *string
 	ExpandJSON      *bool
 	ExpandYAML      *bool
 	SecretsFile     *string
@@ -50,6 +51,7 @@ func parseFlags() ConfigFlags {
 	flags.ConsulURL = flag.String("consul-url", "", "(REQUIRED) The Consul URL REST API endpoint (Full URL with scheme)")
 	flags.ConsulACL = flag.String("consul-acl", "", "The Consul ACL to use (Must have write on the KV following --consul-base path)")
 	flags.ConsulBasePath = flag.String("consul-base-path", "", "The base KV path will be prefixed to dir path")
+	flags.ConsulNameSpace = flag.String("consul-name-space", "", "Namespace to be used (Enterprise Consul only)")
 	flags.ExpandJSON = flag.Bool("expand-json", false, "Expand and parse JSON files as full paths? (Default false)")
 	flags.ExpandYAML = flag.Bool("expand-yaml", false, "Expand and parse YAML files as full paths? (Default false)")
 	flags.SecretsFile = flag.String("secrets-file", "", "A key value json file with placeholders->secrets mapping, in order to do on the fly replace")

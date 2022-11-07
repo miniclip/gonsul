@@ -143,6 +143,7 @@ specifying flags is:
 --consul-url=
 --consul-acl=
 --consul-base-path=
+--consul-name-space=
 --log-level=
 --expand-json=
 --secrets-file=
