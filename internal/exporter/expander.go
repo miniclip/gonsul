@@ -27,6 +27,10 @@ func (e *exporter) traverseMap(path string, arbitraryJSON map[string]interface{}
 			piece := e.createPiece(newPath, fmt.Sprint(value.(float64)))
 			localData[piece.KVPath] = piece.Value
 
+		case int:
+			piece := e.createPiece(newPath, fmt.Sprint(value.(int)))
+			localData[piece.KVPath] = piece.Value
+
 		case []interface{}:
 			// We have an array - ohoh
 			// Array inside consul are... well are not! Insert as string for now
