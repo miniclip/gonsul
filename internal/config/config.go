@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+
 	"github.com/namsral/flag"
 )
 
@@ -16,6 +17,7 @@ const StrategyDry = "DRYRUN"
 const StrategyOnce = "ONCE"
 const StrategyPoll = "POLL"
 const StrategyHook = "HOOK"
+const StrategyRead = "READ"
 
 type config struct {
 	shouldClone     bool
@@ -42,6 +44,10 @@ type config struct {
 	keepFileExt     bool
 	timeout         int
 	version         bool
+	outputFile      string
+	outputDir       string
+	paths           []string
+	printValues     bool
 }
 
 // IConfig is our config interface, implemented by our config struct above. It allows
@@ -71,6 +77,10 @@ type IConfig interface {
 	KeepFileExt() bool
 	GetTimeout() int
 	IsShowVersion() bool
+	GetOutputFile() string
+	GetOutputDir() string
+	GetPaths() []string
+	GetPrintValues() bool
 }
 
 // NewConfig is our config struct constructor.
@@ -107,10 +117,12 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 		return nil, err
 	}
 
+	paths := strings.Split(*flags.Paths, ",")
+
 	// Make sure strategy is properly given
 	strategy := strings.ToUpper(*flags.Strategy)
-	if strategy != StrategyDry && strategy != StrategyOnce && strategy != StrategyPoll && strategy != StrategyHook {
-		return nil, errors.New(fmt.Sprintf("strategy invalid, must be one of: %s, %s, %s, %s", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
+	if strategy != StrategyDry && strategy != StrategyOnce && strategy != StrategyPoll && strategy != StrategyHook && strategy != StrategyRead {
+		return nil, errors.New(fmt.Sprintf("strategy invalid, must be one of: %s, %s, %s, %s", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook, StrategyRead))
 	}
 
 	// Make sure delete method is properly given
@@ -166,6 +178,10 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 		keepFileExt:     *flags.KeepFileExt,
 		timeout:         *flags.Timeout,
 		version:         *flags.Version,
+		outputFile:      *flags.OutputFile,
+		outputDir:       *flags.OutputDir,
+		paths:           paths,
+		printValues:     *flags.PrintValues,
 	}, nil
 }
 
@@ -265,6 +281,21 @@ func (config *config) IsShowVersion() bool {
 	return config.version
 }
 
+func (config *config) GetOutputFile() string {
+	return config.outputFile
+}
+
+func (config *config) GetOutputDir() string {
+	return config.outputDir
+}
+
+func (config *config) GetPaths() []string {
+	return config.paths
+}
+
+func (config *config) GetPrintValues() bool {
+	return config.printValues
+}
 func buildSecretsMap(secretsFile string, repoRootPath string) (map[string]string, error) {
 	var file = secretsFile
 	if _, err := os.Stat(file); os.IsNotExist(err) {

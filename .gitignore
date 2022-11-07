@@ -3,3 +3,7 @@ bin
 vendor
 tests/mocks/*
 !tests/mocks/.gitkeep
+data/
+*.txt
+import.sh
+secrets.json

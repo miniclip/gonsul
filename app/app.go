@@ -13,6 +13,7 @@ import (
 type Application struct {
 	config  config.IConfig
 	once    Ionce
+	read    Iread
 	hook    Ihook
 	poll    Ipoll
 	sigChan chan os.Signal
@@ -22,6 +23,7 @@ type Application struct {
 func NewApplication(
 	config config.IConfig,
 	once Ionce,
+	read Iread,
 	hook Ihook,
 	poll Ipoll,
 	sigChan chan os.Signal,
@@ -29,6 +31,7 @@ func NewApplication(
 	return &Application{
 		config:  config,
 		once:    once,
+		read:    read,
 		hook:    hook,
 		poll:    poll,
 		sigChan: sigChan,
@@ -54,6 +57,8 @@ func (a *Application) Start() {
 
 	// Switch our run strategy
 	switch a.config.GetStrategy() {
+	case config.StrategyRead:
+		a.read.RunRead()
 	case config.StrategyDry, config.StrategyOnce:
 		a.once.RunOnce()
 	case config.StrategyHook:

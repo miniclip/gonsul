@@ -1,6 +1,9 @@
 package exporter
 
 import (
+	"bufio"
+	"os"
+
 	"github.com/miniclip/gonsul/internal/entities"
 
 	"fmt"
@@ -44,7 +47,7 @@ func (e *exporter) isExtensionValid(extension string) bool {
 		}
 	}
 
-	return false
+	// return false
 }
 
 // parseFile ...
@@ -125,4 +128,48 @@ func (e *exporter) createPiece(piecePath string, value string) entities.Entry {
 	}
 
 	return entities.Entry{KVPath: piecePath, Value: value}
+}
+
+// parseFile formatted by exportToFile in importer/directory.go
+func (e *exporter) loadDictFile(filePath string, localData map[string]string, b64encoded bool) error {
+	inFile, err := os.Open(filePath)
+	if err != nil {
+		return fmt.Errorf("loadDictFile: error opening in file %s err=%v", filePath, err)
+	}
+	defer inFile.Close()
+	scanner := bufio.NewScanner(inFile)
+	lineCnt := 0
+	lastKey := ""
+	for scanner.Scan() {
+		aline := scanner.Text()
+		lineCnt++
+		if len(aline) <= 0 {
+			continue
+		}
+
+		if strings.HasPrefix(aline, "#") {
+			continue
+		}
+		if strings.HasPrefix(aline, "r+") && (len(aline) >= 1) && (lastKey > "") {
+			appendVal := aline[2:]
+			localData[lastKey] = localData[lastKey] + "\r\n" + appendVal
+			continue
+		}
+		if strings.HasPrefix(aline, "+") && (len(aline) >= 1) && (lastKey > "") {
+			appendVal := aline[1:]
+			localData[lastKey] = localData[lastKey] + "\n" + appendVal
+			continue
+		}
+
+		arr := strings.SplitN(aline, "=", 2)
+		if len(arr) != 2 {
+			fmt.Println("NOTE: line#", lineCnt, "fails split on = test", " line=", aline)
+			continue
+		}
+		aKey := arr[0]
+		aVal := arr[1]
+		localData[aKey] = aVal
+		lastKey = aKey
+	}
+	return nil
 }

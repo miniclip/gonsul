@@ -49,10 +49,11 @@ func start() {
 	sigChannel := make(chan os.Signal)
 	// Build our Applications
 	once := app.NewOnce(cfg, logger, exp, imp)
+	read := app.NewRead(cfg, logger, imp)
 	hook := app.NewHook(hookHttpServer, cfg, logger, once)
 	poll := app.NewPoll(cfg, logger, once, 0)
 	// Build our main Application container
-	application := app.NewApplication(cfg, once, hook, poll, sigChannel)
+	application := app.NewApplication(cfg, once, read, hook, poll, sigChannel)
 
 	// Start our application
 	application.Start()

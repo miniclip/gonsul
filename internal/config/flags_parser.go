@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+
 	"github.com/miniclip/gonsul/internal/util"
 	"github.com/namsral/flag"
 )
@@ -29,6 +30,10 @@ type ConfigFlags struct {
 	KeepFileExt     *bool
 	Timeout         *int
 	Version         *bool
+	OutputFile      *string
+	OutputDir       *string
+	Paths           *string
+	PrintValues     *bool
 }
 
 func parseFlags() ConfigFlags {
@@ -39,7 +44,7 @@ func parseFlags() ConfigFlags {
 	flag.String(flag.DefaultConfigFlagname, "", "The path to a configuration file")
 
 	flags.LogLevel = flag.String("log-level", util.LogErr, fmt.Sprintf("The desired log level (%s, %s, %s)", util.LogErr, util.LogInfo, util.LogDebug))
-	flags.Strategy = flag.String("strategy", StrategyOnce, fmt.Sprintf("The Gonsul operation mode (%s, %s, %s, %s)", StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
+	flags.Strategy = flag.String("strategy", StrategyOnce, fmt.Sprintf("The Gonsul operation mode (%s, %s, %s, %s, %s)", StrategyRead, StrategyDry, StrategyOnce, StrategyPoll, StrategyHook))
 	flags.RepoURL = flag.String("repo-url", "", "The repository URL (Full URL with scheme)")
 	flags.RepoSSHKey = flag.String("repo-ssh-key", "", "The SSH private key location (Full path)")
 	flags.RepoSSHUser = flag.String("repo-ssh-user", "git", "The SSH user name")
@@ -59,7 +64,10 @@ func parseFlags() ConfigFlags {
 	flags.KeepFileExt = flag.Bool("keep-ext", false, "Do we want to keep file name extensions ? (If not set to true defaults by ommiting the file name extension.) (Default false)")
 	flags.Timeout = flag.Int("timeout", 5, "The number of seconds for the client to wait for a response from Consul")
 	flags.Version = flag.Bool("v", false, "Will show the Gonsul version")
-
+	flags.OutputFile = flag.String("output-file", "", "File to write the existing values in Consul")
+	flags.OutputDir = flag.String("output-dir", "", "Directory to write the existing values in Consul")
+	flags.Paths = flag.String("paths", "", "A comma separated list of files/directories to overwrite as input. The last overwrites the first")
+	flags.PrintValues = flag.Bool("print-values", false, "Show values in the change table")
 	// Parse our command line flags
 	flag.Parse()
 

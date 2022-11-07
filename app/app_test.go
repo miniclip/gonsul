@@ -4,9 +4,10 @@ import (
 	"github.com/miniclip/gonsul/internal/config"
 	"github.com/miniclip/gonsul/tests/mocks"
 
-	. "github.com/onsi/gomega"
 	"os"
 	"testing"
+
+	. "github.com/onsi/gomega"
 )
 
 func getCommonMocks() (cfg *mocks.IConfig, log *mocks.ILogger, exp *mocks.IExporter, imp *mocks.IImporter) {
@@ -51,9 +52,10 @@ func TestApplication_Start(t *testing.T) {
 		once := &mocks.Ionce{}
 		hook := &mocks.Ihook{}
 		poll := &mocks.Ipoll{}
+		read := &mocks.Iread{}
 
 		// Create our application
-		application := NewApplication(cfg, once, hook, poll, sigChan)
+		application := NewApplication(cfg, once, read, hook, poll, sigChan)
 
 		// Always assert config GetStrategy
 		cfg.On("GetStrategy").Return(test.Strategy)
