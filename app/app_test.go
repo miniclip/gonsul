@@ -4,9 +4,10 @@ import (
 	"github.com/miniclip/gonsul/internal/config"
 	"github.com/miniclip/gonsul/tests/mocks"
 
-	. "github.com/onsi/gomega"
 	"os"
 	"testing"
+
+	. "github.com/onsi/gomega"
 )
 
 func getCommonMocks() (cfg *mocks.IConfig, log *mocks.ILogger, exp *mocks.IExporter, imp *mocks.IImporter) {
