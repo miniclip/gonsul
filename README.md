@@ -143,6 +143,9 @@ specifying flags is:
 --consul-url=
 --consul-acl=
 --consul-base-path=
+--ca-file=
+--key-file=
+--cert-file=
 --log-level=
 --expand-json=
 --secrets-file=
@@ -327,6 +330,27 @@ This is the prefix for all generated keys that Gonsul will look at.
 automatically appended.
 This is useful when the Consul cluster as all the KV paths segregated (namespaced) by teams or
 projects.
+
+### `--ca-file`
+
+> `require:` **no**
+> `example:` **`--ca-file=/path/my_ca.crt`**
+
+This is the path for ca certfile for mTLS connection.
+
+### `--cert-file`
+
+> `require:` **no**
+> `example:` **`--cert-file=/path/my_cert.crt`**
+
+This is the path for cert certfile mTLS connection.
+
+### `--key-file`
+
+> `require:` **no**
+> `example:` **`--key-file=/path/my_key.crt`**
+
+This is the path for key certfile mTLS connection.
 
 ### `--log-level`
 

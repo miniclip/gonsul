@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"strings"
+
 	"github.com/namsral/flag"
 )
 
@@ -31,6 +32,9 @@ type config struct {
 	consulURL       string
 	consulACL       string
 	consulBasePath  string
+	keyFile         string
+	certFile        string
+	caFile          string
 	expandJSON      bool
 	expandYAML      bool
 	doSecrets       bool
@@ -60,6 +64,9 @@ type IConfig interface {
 	GetConsulURL() string
 	GetConsulACL() string
 	GetConsulBasePath() string
+	GetKeyFile() string
+	GetCaFile() string
+	GetCertFile() string
 	ShouldExpandJSON() bool
 	ShouldExpandYAML() bool
 	DoSecrets() bool
@@ -155,6 +162,9 @@ func buildConfig(flags ConfigFlags) (*config, error) {
 		consulURL:       *flags.ConsulURL,
 		consulACL:       *flags.ConsulACL,
 		consulBasePath:  *flags.ConsulBasePath,
+		keyFile:         *flags.KeyFile,
+		caFile:          *flags.CaFile,
+		certFile:        *flags.CertFile,
 		expandJSON:      *flags.ExpandJSON,
 		expandYAML:      *flags.ExpandYAML,
 		doSecrets:       doSecrets,
@@ -203,6 +213,18 @@ func (config *config) GetRepoRemoteName() string {
 
 func (config *config) GetRepoBasePath() string {
 	return config.repoBasePath
+}
+
+func (config *config) GetKeyFile() string {
+	return config.keyFile
+}
+
+func (config *config) GetCaFile() string {
+	return config.caFile
+}
+
+func (config *config) GetCertFile() string {
+	return config.certFile
 }
 
 func (config *config) GetRepoRootDir() string {

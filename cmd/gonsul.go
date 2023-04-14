@@ -1,16 +1,20 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
+	"os"
+	"time"
+
 	"github.com/miniclip/gonsul/app"
 	"github.com/miniclip/gonsul/internal/config"
 	"github.com/miniclip/gonsul/internal/exporter"
 	"github.com/miniclip/gonsul/internal/importer"
 	"github.com/miniclip/gonsul/internal/util"
-
-	"fmt"
-	"net/http"
-	"os"
-	"time"
 )
 
 func main() {
@@ -41,9 +45,31 @@ func start() {
 		return
 	}
 
+	var certificate tls.Certificate
+	var caCertPool *x509.CertPool
+	if len(cfg.GetKeyFile()) != 0 && len(cfg.GetCaFile()) != 0 && len(cfg.GetCertFile()) != 0 {
+		cert, err := ioutil.ReadFile(cfg.GetCaFile())
+		if err != nil {
+			log.Fatalf("could not open certificate file: %v", err)
+		}
+		caCertPool = x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(cert)
+
+		certificate, err = tls.LoadX509KeyPair(cfg.GetCertFile(), cfg.GetKeyFile())
+		if err != nil {
+			log.Fatalf("could not load certificate: %v", err)
+		}
+	}
+
 	// Build all dependencies for our application
 	hookHttpServer := app.NewHookHttp(cfg, logger)
-	httpClient := &http.Client{Timeout: time.Second * time.Duration(cfg.GetTimeout())}
+	httpClient := &http.Client{Transport: &http.Transport{
+		TLSClientConfig: &tls.Config{
+			RootCAs:      caCertPool,
+			Certificates: []tls.Certificate{certificate},
+		},
+	}, Timeout: time.Second * time.Duration(cfg.GetTimeout())}
+
 	exp := exporter.NewExporter(cfg, logger)
 	imp := importer.NewImporter(cfg, logger, httpClient)
 	sigChannel := make(chan os.Signal)
