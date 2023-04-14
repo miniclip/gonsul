@@ -334,21 +334,21 @@ projects.
 ### `--ca-file`
 
 > `require:` **no**
-> `example:` **`--repo-branch=/path/my_ca.crt`**
+> `example:` **`--ca-file=/path/my_ca.crt`**
 
 This is the path for ca certfile for mTLS connection.
 
 ### `--cert-file`
 
 > `require:` **no**
-> `example:` **`--repo-branch=/path/my_cert.crt`**
+> `example:` **`--cert-file=/path/my_cert.crt`**
 
 This is the path for cert certfile mTLS connection.
 
 ### `--key-file`
 
 > `require:` **no**
-> `example:` **`--repo-branch=/path/my_key.crt`**
+> `example:` **`--key-file=/path/my_key.crt`**
 
 This is the path for key certfile mTLS connection.
 
