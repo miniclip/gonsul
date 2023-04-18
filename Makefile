@@ -29,6 +29,12 @@ mocks:
 	CGO_ENABLED=0 $(GOPATH)/bin/mockery --all --output ./tests/mocks --dir ./internal/
 	@echo "=== Done ==="
 
+vulns:
+	@echo "=== Run govulncheck to check vulnerabilties  ==="
+	go install golang.org/x/vuln/cmd/govulncheck@latest
+	govulncheck ./...
+	@echo "=== Done ==="
+
 # Validates the correct format of the code
 fmt:
 	@echo "=== Validating code compliance ==="
